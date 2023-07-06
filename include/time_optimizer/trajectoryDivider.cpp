@@ -20,7 +20,7 @@ namespace timeOptimizer{
 		this->time_ = time;
 	}
 
-	void trajDivider::run(std::vector<double>& splitTime){
+	void trajDivider::run(std::vector<std::pair<double, double>>& tInterval, std::vector<double>& obstacleDist){
 		// 1. find the range based on the trajectory
 		Eigen::Vector3d rangeMin, rangeMax;
 		this->findRange(rangeMin, rangeMax);
@@ -34,6 +34,7 @@ namespace timeOptimizer{
 		this->findNearestObstacles(nearestObstacles, mask);
 
 		// 4. divide trajectory
+		this->divideTrajectory(nearestObstacles, mask, tInterval, obstacleDist);
 	}
 
 	void trajDivider::findRange(Eigen::Vector3d& rangeMin, Eigen::Vector3d& rangeMax){
@@ -134,7 +135,7 @@ namespace timeOptimizer{
 
 	void trajDivider::findNearestObstacles(std::vector<Eigen::Vector3d>& nearestObstacles, std::vector<bool>& mask){
 		nearestObstacles.resize(this->trajectory_.size());
-		mask.resize(this->trajectory_.size());
+		mask.resize(this->trajectory_.size(), false);
 		for (size_t i=0; i<this->trajectory_.size(); ++i){
 			if (int(i) >= this->maxLengthIdx_){
 				mask[i] = false;
@@ -154,4 +155,61 @@ namespace timeOptimizer{
 			}
 		}
 	}
+
+	void trajDivider::divideTrajectory(const std::vector<Eigen::Vector3d>& nearestObstacles, const std::vector<bool>& mask, std::vector<std::pair<double, double>>& tInterval, std::vector<double>& obstacleDist){
+		// find the raw interval
+		std::vector<std::pair<double, double>> tIntervalRaw;
+		std::vector<std::pair<int, int>> tIntervalRawIdx;
+		std::pair<double, double> interval;
+		std::pair<int, int> intervalIdx;
+		bool mValPrev = false;
+		bool complete = true;
+		for (size_t i=0; i<mask.size(); ++i){
+			bool mVal = mask[i];
+			if (mValPrev == false and mVal == true){
+				interval.first = this->time_[i];
+				intervalIdx.first = i;
+				complete = false;
+			}
+			else if (mValPrev == true and mVal == false){
+				interval.second = this->time_[i-1];
+				intervalIdx.second = i-1;
+				tIntervalRaw.push_back(interval);
+				tIntervalRawIdx.push_back(intervalIdx);
+				complete = true;
+			}
+		}
+
+		if (not complete){
+			interval.second = this->time_.back();
+			intervalIdx.second = int(this->time_.size()) - 1;
+			tIntervalRaw.push_back(interval);
+			tIntervalRawIdx.push_back(intervalIdx);
+			complete = true;
+		}
+
+		// merge short-time intervals
+		std::vector<std::pair<int, int>> tIntervalIdx;
+		for (size_t i=0; i<tIntervalRaw.size(); ++i){
+			std::pair<double, double> intervalCurr = tIntervalRaw[i];
+			if (intervalCurr.second - intervalCurr.first > this->minTimeInterval_){ // time is too short
+				tInterval.push_back(intervalCurr);
+				tIntervalIdx.push_back(tIntervalRawIdx[i]);
+			}				
+		}
+
+		// compute the minimum distance for each time interval
+		for (size_t i=0; i<tInterval.size(); ++i){
+			double minDist = std::numeric_limits<double>::max();
+			for (int j=tIntervalIdx[i].first; j<=tIntervalIdx[i].second; ++j){
+				double dist = (nearestObstacles[i] - this->trajectory_[i]).norm();
+				if (dist < minDist){
+					minDist = dist;
+				}
+			}
+			obstacleDist.push_back(minDist);
+		}
+		
+	}
+
 }

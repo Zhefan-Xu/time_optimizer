@@ -24,6 +24,7 @@ namespace timeOptimizer{
 		// parameter
 		double maxLength_ = 7.0; // m
 		double safeDist_ = 1.0; // m
+		double minTimeInterval_ = 1.0;
 
 
 		
@@ -33,10 +34,11 @@ namespace timeOptimizer{
 		void setMap(const std::shared_ptr<mapManager::dynamicMap>& map);
 		void setTrajectory(const std::vector<Eigen::Vector3d>& trajectory, const std::vector<double>& time);
 	
-		void run(std::vector<double>& splitTime);
+		void run(std::vector<std::pair<double, double>>& tInterval, std::vector<double>& obstacleDist);
 		void findRange(Eigen::Vector3d& rangeMin, Eigen::Vector3d& rangeMax);
 		void buildKDTree(const Eigen::Vector3d& rangeMin, const Eigen::Vector3d& rangeMax);
 		void findNearestObstacles(std::vector<Eigen::Vector3d>& nearestObstacles, std::vector<bool>& mask);
+		void divideTrajectory(const std::vector<Eigen::Vector3d>& nearestObstacles, const std::vector<bool>& mask, std::vector<std::pair<double, double>>& tInterval, std::vector<double>& obstacleDist);
 	};
 }
 
