@@ -12,6 +12,9 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   rospy
   std_msgs
+  global_planner
+  map_manager
+  trajectory_planner
 )
 
 ## System dependencies are found with CMake's conventions
