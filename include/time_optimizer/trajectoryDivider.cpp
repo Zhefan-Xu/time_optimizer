@@ -220,14 +220,31 @@ namespace timeOptimizer{
 		}
 
 		// merge short-time intervals
+		double prevEndTime = 0.0;
 		std::vector<std::pair<int, int>> tIntervalIdx;
 		for (size_t i=0; i<tIntervalRaw.size(); ++i){
 			std::pair<double, double> intervalCurr = tIntervalRaw[i];
 			if (intervalCurr.second - intervalCurr.first > this->minTimeInterval_){ // time is too short
-				tInterval.push_back(intervalCurr);
-				tIntervalIdx.push_back(tIntervalRawIdx[i]);
-			}				
+				if (intervalCurr.first - prevEndTime > this->minIntervalDiff_){
+					tInterval.push_back(intervalCurr);
+					tIntervalIdx.push_back(tIntervalRawIdx[i]);
+				}
+				else{
+					if (i == 0){ 
+						intervalCurr.first = 0.0;
+						tIntervalRawIdx[0].first = 0;
+						tInterval.push_back(intervalCurr);
+						tIntervalIdx.push_back(tIntervalRawIdx[0]);						
+					}
+					else{
+						tInterval.back().second = intervalCurr.second;
+						tIntervalIdx.back().second = tIntervalRawIdx[i].second;
+					}
+				}
+			}
+			prevEndTime = tInterval.back().second;				
 		}
+
 
 		// compute the minimum distance for each time interval
 		for (size_t i=0; i<tInterval.size(); ++i){
