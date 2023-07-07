@@ -8,7 +8,8 @@
 
 namespace timeOptimizer{
 	trajDivider::trajDivider(const ros::NodeHandle& nh) : nh_(nh){
-		
+		this->registerPub();
+		this->registerCallback();
 	}
 
 	void trajDivider::setMap(const std::shared_ptr<mapManager::occMap>& map){
@@ -20,7 +21,22 @@ namespace timeOptimizer{
 		this->time_ = time;
 	}
 
+	void trajDivider::registerPub(){
+		this->obTrajPub_ = this->nh_.advertise<visualization_msgs::MarkerArray>("trajDivider/obstacle_trajectory", 10);
+	}
+
+	void trajDivider::registerCallback(){
+		this->visTimer_ = this->nh_.createTimer(ros::Duration(0.033), &trajDivider::visCB, this);
+	}
+
+	void trajDivider::visCB(const ros::TimerEvent&){
+		this->publishObstacleTrajectory();
+	}
+
 	void trajDivider::run(std::vector<std::pair<double, double>>& tInterval, std::vector<double>& obstacleDist){
+		ros::Time startTime = ros::Time::now();
+		this->maxLengthIdx_ = 0;
+		this->complete_ = false;
 		// 1. find the range based on the trajectory
 		Eigen::Vector3d rangeMin, rangeMax;
 		this->findRange(rangeMin, rangeMax);
@@ -38,6 +54,9 @@ namespace timeOptimizer{
 
 		// 4. divide trajectory
 		this->divideTrajectory(nearestObstacles, mask, tInterval, obstacleDist);
+		this->complete_ = true;
+		ros::Time endTime = ros::Time::now();
+		cout << "[trajDivider]: Divider run time: " << (endTime - startTime).toSec() << endl;
 	}
 
 	void trajDivider::findRange(Eigen::Vector3d& rangeMin, Eigen::Vector3d& rangeMax){
@@ -157,6 +176,7 @@ namespace timeOptimizer{
 				}	
 			}
 		}
+		this->mask_ = mask;
 	}
 
 	void trajDivider::divideTrajectory(const std::vector<Eigen::Vector3d>& nearestObstacles, const std::vector<bool>& mask, std::vector<std::pair<double, double>>& tInterval, std::vector<double>& obstacleDist){
@@ -215,4 +235,35 @@ namespace timeOptimizer{
 		
 	}
 
+	void trajDivider::publishObstacleTrajectory(){
+		if (complete_){
+			visualization_msgs::MarkerArray obTrajMarkers;
+			int countPointNum = 0;
+			for (size_t i=0; i<this->trajectory_.size(); ++i){
+				if (this->mask_[i]){
+					visualization_msgs::Marker point;
+					point.header.frame_id = "map";
+					point.header.stamp = ros::Time::now();
+					point.ns = "obstacle_trajectory_point";
+					point.id = countPointNum;
+					point.type = visualization_msgs::Marker::SPHERE;
+					point.action = visualization_msgs::Marker::ADD;
+					point.pose.position.x = this->trajectory_[i](0);
+					point.pose.position.y = this->trajectory_[i](1);
+					point.pose.position.z = this->trajectory_[i](2);
+					point.lifetime = ros::Duration(0.1);
+					point.scale.x = 0.1;
+					point.scale.y = 0.1;
+					point.scale.z = 0.1;
+					point.color.a = 1.0;
+					point.color.r = 1.0;
+					point.color.g = 0.0;
+					point.color.b = 0.0;
+					++countPointNum;
+					obTrajMarkers.markers.push_back(point);					
+				}
+			}
+			this->obTrajPub_.publish(obTrajMarkers);
+		}
+	}
 }
