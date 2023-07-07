@@ -9,6 +9,7 @@
 
 #include <ros/ros.h>
 #include <global_planner/KDTree.h>
+#include <global_planner/utils.h>
 #include <map_manager/occupancyMap.h>
 #include <visualization_msgs/MarkerArray.h>
 
@@ -17,7 +18,7 @@ namespace timeOptimizer{
 	class trajDivider{
 	private:
 		ros::NodeHandle nh_;
-		ros::Publisher obTrajPub_;
+		ros::Publisher visPub_;
 		ros::Timer visTimer_;
 
 
@@ -25,8 +26,9 @@ namespace timeOptimizer{
 		std::vector<Eigen::Vector3d> trajectory_;
 		std::vector<double> time_;
 		bool complete_ = false;
-		int maxLengthIdx_ = 0;
+		int maxLengthIdx_;
 		std::vector<bool> mask_;
+		std::pair<Eigen::Vector3d, Eigen::Vector3d> sampleRange_;
 		std::shared_ptr<KDTree::KDTree<3, int>> kdtree_;
 
 		// parameter
@@ -52,7 +54,7 @@ namespace timeOptimizer{
 		void findNearestObstacles(std::vector<Eigen::Vector3d>& nearestObstacles, std::vector<bool>& mask);
 		void divideTrajectory(const std::vector<Eigen::Vector3d>& nearestObstacles, const std::vector<bool>& mask, std::vector<std::pair<double, double>>& tInterval, std::vector<double>& obstacleDist);
 	
-		void publishObstacleTrajectory();
+		void publishVisMsg();
 	};
 }
 

@@ -22,7 +22,7 @@ namespace timeOptimizer{
 	}
 
 	void trajDivider::registerPub(){
-		this->obTrajPub_ = this->nh_.advertise<visualization_msgs::MarkerArray>("trajDivider/obstacle_trajectory", 10);
+		this->visPub_ = this->nh_.advertise<visualization_msgs::MarkerArray>("trajDivider/vis_msg", 10);
 	}
 
 	void trajDivider::registerCallback(){
@@ -30,22 +30,21 @@ namespace timeOptimizer{
 	}
 
 	void trajDivider::visCB(const ros::TimerEvent&){
-		this->publishObstacleTrajectory();
+		this->publishVisMsg();
 	}
 
 	void trajDivider::run(std::vector<std::pair<double, double>>& tInterval, std::vector<double>& obstacleDist){
 		ros::Time startTime = ros::Time::now();
-		this->maxLengthIdx_ = 0;
 		this->complete_ = false;
 		// 1. find the range based on the trajectory
 		Eigen::Vector3d rangeMin, rangeMax;
 		this->findRange(rangeMin, rangeMax);
-		cout << "sample range min: " << rangeMin.transpose() << endl;
-		cout << "sample range max: " << rangeMax.transpose() << endl;
+		// cout << "sample range min: " << rangeMin.transpose() << endl;
+		// cout << "sample range max: " << rangeMax.transpose() << endl;
 
 		// 2. build KDTree based on range and map
 		this->buildKDTree(rangeMin, rangeMax);
-		cout << "KDtree size: " << this->kdtree_->size() << endl;
+		// cout << "KDtree size: " << this->kdtree_->size() << endl;
 
 		// 3. find nearest point for each trajectory sample point
 		std::vector<Eigen::Vector3d> nearestObstacles;
@@ -67,6 +66,7 @@ namespace timeOptimizer{
 		this->map_->getCurrMapRange(mapMin, mapMax);
 		rangeMin = this->trajectory_[0];
 		rangeMax = this->trajectory_[0];
+		this->maxLengthIdx_ = int(this->trajectory_.size());
 		for (size_t i=1; i<this->trajectory_.size(); ++i){
 			Eigen::Vector3d pPrev = this->trajectory_[i-1];
 			Eigen::Vector3d pCurr = this->trajectory_[i];
@@ -130,6 +130,9 @@ namespace timeOptimizer{
 		if (rangeMax(2) > mapMax(2)){
 			rangeMax(2) = mapMax(2);
 		}
+
+		this->sampleRange_.first = rangeMin;
+		this->sampleRange_.second = rangeMax;
 	}
 
 	void trajDivider::buildKDTree(const Eigen::Vector3d& rangeMin, const Eigen::Vector3d& rangeMax){
@@ -163,16 +166,21 @@ namespace timeOptimizer{
 				mask[i] = false;
 			}
 			else{
-				Eigen::Vector3d p = this->trajectory_[i];
-				KDTree::Point<3> point, nn;
-				point[0] = p(0);
-				point[1] = p(1);
-				point[2] = p(2);
-				this->kdtree_->nearestNeighbor(point, nn);
-				Eigen::Vector3d pNN (nn[0], nn[1], nn[2]);
-				if ((p - pNN).norm() <= this->safeDist_){
-					mask[i] = true;
-					nearestObstacles[i] = pNN;
+				if (i != this->trajectory_.size() - 1){
+					Eigen::Vector3d p = this->trajectory_[i];
+					KDTree::Point<3> point, nn;
+					point[0] = p(0);
+					point[1] = p(1);
+					point[2] = p(2);
+					this->kdtree_->nearestNeighbor(point, nn);
+					Eigen::Vector3d pNN (nn[0], nn[1], nn[2]);
+					Eigen::Vector3d pNext = this->trajectory_[i+1];
+					Eigen::Vector3d velDirection = pNext - p;
+					Eigen::Vector3d obDirection = pNN - p;
+					if ((p - pNN).norm() <= this->safeDist_ and globalPlanner::angleBetweenVectors(velDirection, obDirection) <= globalPlanner::PI_const/2.0){
+						mask[i] = true;
+						nearestObstacles[i] = pNN;
+					}
 				}	
 			}
 		}
@@ -235,8 +243,9 @@ namespace timeOptimizer{
 		
 	}
 
-	void trajDivider::publishObstacleTrajectory(){
+	void trajDivider::publishVisMsg(){
 		if (complete_){
+			// raw obstacle trajectory points
 			visualization_msgs::MarkerArray obTrajMarkers;
 			int countPointNum = 0;
 			for (size_t i=0; i<this->trajectory_.size(); ++i){
@@ -263,7 +272,30 @@ namespace timeOptimizer{
 					obTrajMarkers.markers.push_back(point);					
 				}
 			}
-			this->obTrajPub_.publish(obTrajMarkers);
+
+			// sample range
+			visualization_msgs::Marker range;
+			range.header.frame_id = "map";
+			range.header.stamp = ros::Time::now();
+			range.ns = "range box";
+			range.id = 0;
+			range.type = visualization_msgs::Marker::CUBE;
+			range.action = visualization_msgs::Marker::ADD;
+			range.pose.position.x = (this->sampleRange_.first(0) + this->sampleRange_.second(0))/2.0;
+			range.pose.position.y = (this->sampleRange_.first(1) + this->sampleRange_.second(1))/2.0;
+			range.pose.position.z = (this->sampleRange_.first(2) + this->sampleRange_.second(2))/2.0;
+			// range.lifetime = ros::Duration(0.1);
+			range.scale.x = this->sampleRange_.second(0) - this->sampleRange_.first(0);
+			range.scale.y = this->sampleRange_.second(1) - this->sampleRange_.first(1);
+			range.scale.z = this->sampleRange_.second(2) - this->sampleRange_.first(2);
+			range.color.a = 0.4;
+			range.color.r = 0.0;
+			range.color.g = 0.0;
+			range.color.b = 1.0;
+			obTrajMarkers.markers.push_back(range);				
+
+
+			this->visPub_.publish(obTrajMarkers);
 		}
 	}
 }
