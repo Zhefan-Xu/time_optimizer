@@ -11,7 +11,7 @@ namespace timeOptimizer{
 		
 	}
 
-	void trajDivider::setMap(const std::shared_ptr<mapManager::dynamicMap>& map){
+	void trajDivider::setMap(const std::shared_ptr<mapManager::occMap>& map){
 		this->map_ = map;
 	}
 
@@ -24,9 +24,12 @@ namespace timeOptimizer{
 		// 1. find the range based on the trajectory
 		Eigen::Vector3d rangeMin, rangeMax;
 		this->findRange(rangeMin, rangeMax);
+		cout << "sample range min: " << rangeMin.transpose() << endl;
+		cout << "sample range max: " << rangeMax.transpose() << endl;
 
 		// 2. build KDTree based on range and map
 		this->buildKDTree(rangeMin, rangeMax);
+		cout << "KDtree size: " << this->kdtree_->size() << endl;
 
 		// 3. find nearest point for each trajectory sample point
 		std::vector<Eigen::Vector3d> nearestObstacles;

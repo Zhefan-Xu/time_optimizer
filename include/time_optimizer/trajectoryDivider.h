@@ -8,14 +8,15 @@
 #define TRAJECTORY_DIVIDER_H
 
 #include <ros/ros.h>
-#include <map_manager/dynamicMap.h>
 #include <global_planner/KDTree.h>
+#include <map_manager/occupancyMap.h>
+
 
 namespace timeOptimizer{
 	class trajDivider{
 	private:
 		ros::NodeHandle nh_;
-		std::shared_ptr<mapManager::dynamicMap> map_;
+		std::shared_ptr<mapManager::occMap> map_;
 		std::vector<Eigen::Vector3d> trajectory_;
 		std::vector<double> time_;
 		int maxLengthIdx_ = 0;
@@ -31,7 +32,7 @@ namespace timeOptimizer{
 
 	public:
 		trajDivider(const ros::NodeHandle& nh);
-		void setMap(const std::shared_ptr<mapManager::dynamicMap>& map);
+		void setMap(const std::shared_ptr<mapManager::occMap>& map);
 		void setTrajectory(const std::vector<Eigen::Vector3d>& trajectory, const std::vector<double>& time);
 	
 		void run(std::vector<std::pair<double, double>>& tInterval, std::vector<double>& obstacleDist);
