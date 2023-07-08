@@ -221,48 +221,49 @@ namespace timeOptimizer{
 		}
 
 		// merge short-time intervals
-		// double prevEndTime = 0.0;
-		// std::vector<std::pair<int, int>> tIntervalIdx;
-		// for (size_t i=0; i<tIntervalRaw.size(); ++i){
-		// 	std::pair<double, double> intervalCurr = tIntervalRaw[i];
-		// 	if (intervalCurr.second - intervalCurr.first > this->minTimeInterval_){ // time is too short
-		// 		cout << "safe time interval diff: " << intervalCurr.first - prevEndTime << endl;
-		// 		if (intervalCurr.first - prevEndTime > this->minIntervalDiff_){
-		// 			tInterval.push_back(intervalCurr);
-		// 			tIntervalIdx.push_back(tIntervalRawIdx[i]);
-		// 		}
-		// 		else{
-		// 			if (tInterval.size() == 0){ 
-		// 				intervalCurr.first = 0.0;
-		// 				tIntervalRawIdx[0].first = 0;
-		// 				tInterval.push_back(intervalCurr);
-		// 				tIntervalIdx.push_back(tIntervalRawIdx[0]);						
-		// 			}
-		// 			else{
-		// 				tInterval.back().second = intervalCurr.second;
-		// 				tIntervalIdx.back().second = tIntervalRawIdx[i].second;
-		// 			}
-		// 		}
-		// 		prevEndTime = tInterval.back().second;	
-		// 	}
-						
-		// }
-
+		double prevEndTime = 0.0;
 		std::vector<std::pair<int, int>> tIntervalIdx;
 		for (size_t i=0; i<tIntervalRaw.size(); ++i){
 			std::pair<double, double> intervalCurr = tIntervalRaw[i];
-			cout << "raw interval: " << intervalCurr.first << " " << intervalCurr.second << endl;
 			if (intervalCurr.second - intervalCurr.first > this->minTimeInterval_){ // time is too short
-				tInterval.push_back(intervalCurr);
-				tIntervalIdx.push_back(tIntervalRawIdx[i]);
+				cout << "safe time interval diff: " << intervalCurr.first - prevEndTime << endl;
+				if (intervalCurr.first - prevEndTime > this->minIntervalDiff_){
+					tInterval.push_back(intervalCurr);
+					tIntervalIdx.push_back(tIntervalRawIdx[i]);
+				}
+				else{
+					if (tInterval.size() == 0){ 
+						intervalCurr.first = 0.0;
+						tIntervalRawIdx[0].first = 0;
+						tInterval.push_back(intervalCurr);
+						tIntervalIdx.push_back(tIntervalRawIdx[0]);						
+					}
+					else{
+						tInterval.back().second = intervalCurr.second;
+						tIntervalIdx.back().second = tIntervalRawIdx[i].second;
+					}
+				}
+				prevEndTime = tInterval.back().second;	
 			}
+						
 		}
 		this->tInterval_ = tInterval;
 
-		for (size_t i=0; i<tInterval.size(); ++i){
-			std::pair<double, double> intervalCurr = tInterval[i];
-			cout << "raw interval: " << intervalCurr.first << " " << intervalCurr.second << endl;			
-		}
+		// std::vector<std::pair<int, int>> tIntervalIdx;
+		// for (size_t i=0; i<tIntervalRaw.size(); ++i){
+		// 	std::pair<double, double> intervalCurr = tIntervalRaw[i];
+		// 	cout << "raw interval: " << intervalCurr.first << " " << intervalCurr.second << endl;
+		// 	if (intervalCurr.second - intervalCurr.first > this->minTimeInterval_){ // time is too short
+		// 		tInterval.push_back(intervalCurr);
+		// 		tIntervalIdx.push_back(tIntervalRawIdx[i]);
+		// 	}
+		// }
+		// this->tInterval_ = tInterval;
+
+		// for (size_t i=0; i<tInterval.size(); ++i){
+		// 	std::pair<double, double> intervalCurr = tInterval[i];
+		// 	cout << "raw interval: " << intervalCurr.first << " " << intervalCurr.second << endl;			
+		// }
 
 
 		// compute the minimum distance for each time interval

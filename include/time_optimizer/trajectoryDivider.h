@@ -36,7 +36,7 @@ namespace timeOptimizer{
 		double maxLength_ = 7.0; // m
 		double safeDist_ = 1.0; // m
 		double minTimeInterval_ = 1.0;
-		double minIntervalDiff_ = 0.2;
+		double minIntervalDiff_ = 0.4;
 
 
 		
