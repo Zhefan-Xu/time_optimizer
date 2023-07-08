@@ -209,6 +209,7 @@ namespace timeOptimizer{
 				tIntervalRawIdx.push_back(intervalIdx);
 				complete = true;
 			}
+			mValPrev = mVal;
 		}
 
 		if (not complete){
@@ -220,29 +221,47 @@ namespace timeOptimizer{
 		}
 
 		// merge short-time intervals
-		double prevEndTime = 0.0;
+		// double prevEndTime = 0.0;
+		// std::vector<std::pair<int, int>> tIntervalIdx;
+		// for (size_t i=0; i<tIntervalRaw.size(); ++i){
+		// 	std::pair<double, double> intervalCurr = tIntervalRaw[i];
+		// 	if (intervalCurr.second - intervalCurr.first > this->minTimeInterval_){ // time is too short
+		// 		cout << "safe time interval diff: " << intervalCurr.first - prevEndTime << endl;
+		// 		if (intervalCurr.first - prevEndTime > this->minIntervalDiff_){
+		// 			tInterval.push_back(intervalCurr);
+		// 			tIntervalIdx.push_back(tIntervalRawIdx[i]);
+		// 		}
+		// 		else{
+		// 			if (tInterval.size() == 0){ 
+		// 				intervalCurr.first = 0.0;
+		// 				tIntervalRawIdx[0].first = 0;
+		// 				tInterval.push_back(intervalCurr);
+		// 				tIntervalIdx.push_back(tIntervalRawIdx[0]);						
+		// 			}
+		// 			else{
+		// 				tInterval.back().second = intervalCurr.second;
+		// 				tIntervalIdx.back().second = tIntervalRawIdx[i].second;
+		// 			}
+		// 		}
+		// 		prevEndTime = tInterval.back().second;	
+		// 	}
+						
+		// }
+
 		std::vector<std::pair<int, int>> tIntervalIdx;
 		for (size_t i=0; i<tIntervalRaw.size(); ++i){
 			std::pair<double, double> intervalCurr = tIntervalRaw[i];
+			cout << "raw interval: " << intervalCurr.first << " " << intervalCurr.second << endl;
 			if (intervalCurr.second - intervalCurr.first > this->minTimeInterval_){ // time is too short
-				if (intervalCurr.first - prevEndTime > this->minIntervalDiff_){
-					tInterval.push_back(intervalCurr);
-					tIntervalIdx.push_back(tIntervalRawIdx[i]);
-				}
-				else{
-					if (i == 0){ 
-						intervalCurr.first = 0.0;
-						tIntervalRawIdx[0].first = 0;
-						tInterval.push_back(intervalCurr);
-						tIntervalIdx.push_back(tIntervalRawIdx[0]);						
-					}
-					else{
-						tInterval.back().second = intervalCurr.second;
-						tIntervalIdx.back().second = tIntervalRawIdx[i].second;
-					}
-				}
+				tInterval.push_back(intervalCurr);
+				tIntervalIdx.push_back(tIntervalRawIdx[i]);
 			}
-			prevEndTime = tInterval.back().second;				
+		}
+		this->tInterval_ = tInterval;
+
+		for (size_t i=0; i<tInterval.size(); ++i){
+			std::pair<double, double> intervalCurr = tInterval[i];
+			cout << "raw interval: " << intervalCurr.first << " " << intervalCurr.second << endl;			
 		}
 
 
@@ -266,7 +285,19 @@ namespace timeOptimizer{
 			visualization_msgs::MarkerArray obTrajMarkers;
 			int countPointNum = 0;
 			for (size_t i=0; i<this->trajectory_.size(); ++i){
-				if (this->mask_[i]){
+				bool inInterval = false;
+				double t = this->time_[i];
+				for (std::pair<double, double> interval : this->tInterval_){
+					// cout << "interval range: " << interval.first << " " << interval.second << endl;
+					if (t >= interval.first and t <= interval.second){
+						// cout << "t: " << t << endl;
+						inInterval = true;
+						break;
+					}
+				}
+
+				if (inInterval){
+				// if (this->mask_[i]){
 					visualization_msgs::Marker point;
 					point.header.frame_id = "map";
 					point.header.stamp = ros::Time::now();

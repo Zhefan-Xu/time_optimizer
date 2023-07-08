@@ -30,12 +30,13 @@ namespace timeOptimizer{
 		std::vector<bool> mask_;
 		std::pair<Eigen::Vector3d, Eigen::Vector3d> sampleRange_;
 		std::shared_ptr<KDTree::KDTree<3, int>> kdtree_;
+		std::vector<std::pair<double, double>> tInterval_;
 
 		// parameter
 		double maxLength_ = 7.0; // m
 		double safeDist_ = 1.0; // m
 		double minTimeInterval_ = 1.0;
-		double minIntervalDiff_ = 0.4;
+		double minIntervalDiff_ = 0.2;
 
 
 		
