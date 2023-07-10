@@ -161,27 +161,29 @@ namespace timeOptimizer{
 	void trajDivider::findNearestObstacles(std::vector<Eigen::Vector3d>& nearestObstacles, std::vector<bool>& mask){
 		nearestObstacles.resize(this->trajectory_.size());
 		mask.resize(this->trajectory_.size(), false);
-		for (size_t i=0; i<this->trajectory_.size(); ++i){
-			if (int(i) >= this->maxLengthIdx_){
-				mask[i] = false;
-			}
-			else{
-				if (i != this->trajectory_.size() - 1){
-					Eigen::Vector3d p = this->trajectory_[i];
-					KDTree::Point<3> point, nn;
-					point[0] = p(0);
-					point[1] = p(1);
-					point[2] = p(2);
-					this->kdtree_->nearestNeighbor(point, nn);
-					Eigen::Vector3d pNN (nn[0], nn[1], nn[2]);
-					Eigen::Vector3d pNext = this->trajectory_[i+1];
-					Eigen::Vector3d velDirection = pNext - p;
-					Eigen::Vector3d obDirection = pNN - p;
-					if ((p - pNN).norm() <= this->safeDist_ and globalPlanner::angleBetweenVectors(velDirection, obDirection) <= globalPlanner::PI_const/2.0){
-						mask[i] = true;
-						nearestObstacles[i] = pNN;
-					}
-				}	
+		if (not this->kdtree_->empty()){
+			for (size_t i=0; i<this->trajectory_.size(); ++i){
+				if (int(i) >= this->maxLengthIdx_){
+					mask[i] = false;
+				}
+				else{
+					if (i != this->trajectory_.size() - 1){
+						Eigen::Vector3d p = this->trajectory_[i];
+						KDTree::Point<3> point, nn;
+						point[0] = p(0);
+						point[1] = p(1);
+						point[2] = p(2);
+						this->kdtree_->nearestNeighbor(point, nn);
+						Eigen::Vector3d pNN (nn[0], nn[1], nn[2]);
+						Eigen::Vector3d pNext = this->trajectory_[i+1];
+						Eigen::Vector3d velDirection = pNext - p;
+						Eigen::Vector3d obDirection = pNN - p;
+						if ((p - pNN).norm() <= this->safeDist_ and globalPlanner::angleBetweenVectors(velDirection, obDirection) <= globalPlanner::PI_const/2.0){
+							mask[i] = true;
+							nearestObstacles[i] = pNN;
+						}
+					}	
+				}
 			}
 		}
 		this->mask_ = mask;
@@ -226,7 +228,6 @@ namespace timeOptimizer{
 		for (size_t i=0; i<tIntervalRaw.size(); ++i){
 			std::pair<double, double> intervalCurr = tIntervalRaw[i];
 			if (intervalCurr.second - intervalCurr.first > this->minTimeInterval_){ // time is too short
-				cout << "safe time interval diff: " << intervalCurr.first - prevEndTime << endl;
 				if (intervalCurr.first - prevEndTime > this->minIntervalDiff_){
 					tInterval.push_back(intervalCurr);
 					tIntervalIdx.push_back(tIntervalRawIdx[i]);
