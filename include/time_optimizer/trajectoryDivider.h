@@ -30,13 +30,14 @@ namespace timeOptimizer{
 		std::vector<bool> mask_;
 		std::pair<Eigen::Vector3d, Eigen::Vector3d> sampleRange_;
 		std::shared_ptr<KDTree::KDTree<3, int>> kdtree_;
+		std::vector<Eigen::Vector3d> nearestObstacles_;
 		std::vector<std::pair<double, double>> tInterval_;
 
 		// parameter
 		double maxLength_ = 7.0; // m
 		double safeDist_ = 1.0; // m
-		double minTimeInterval_ = 1.0;
-		double minIntervalDiff_ = 0.4;
+		double minTimeIntervalRatio_ = 0.1;
+		double minIntervalDiffRatio_ = 0.05;
 
 
 		
@@ -55,7 +56,8 @@ namespace timeOptimizer{
 		void buildKDTree(const Eigen::Vector3d& rangeMin, const Eigen::Vector3d& rangeMax);
 		void findNearestObstacles(std::vector<Eigen::Vector3d>& nearestObstacles, std::vector<bool>& mask);
 		void divideTrajectory(const std::vector<Eigen::Vector3d>& nearestObstacles, const std::vector<bool>& mask, std::vector<std::pair<double, double>>& tInterval, std::vector<double>& obstacleDist);
-	
+		void getNearestObstacles(std::vector<Eigen::Vector3d>& nearestObstacles, std::vector<bool>& mask);
+
 		void publishVisMsg();
 	};
 }

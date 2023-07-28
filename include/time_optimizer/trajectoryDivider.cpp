@@ -187,6 +187,7 @@ namespace timeOptimizer{
 			}
 		}
 		this->mask_ = mask;
+		this->nearestObstacles_ = nearestObstacles;
 	}
 
 	void trajDivider::divideTrajectory(const std::vector<Eigen::Vector3d>& nearestObstacles, const std::vector<bool>& mask, std::vector<std::pair<double, double>>& tInterval, std::vector<double>& obstacleDist){
@@ -227,8 +228,8 @@ namespace timeOptimizer{
 		std::vector<std::pair<int, int>> tIntervalIdx;
 		for (size_t i=0; i<tIntervalRaw.size(); ++i){
 			std::pair<double, double> intervalCurr = tIntervalRaw[i];
-			if (intervalCurr.second - intervalCurr.first > this->minTimeInterval_){ // time is too short
-				if (intervalCurr.first - prevEndTime > this->minIntervalDiff_){
+			if (intervalCurr.second - intervalCurr.first > this->minTimeIntervalRatio_ * this->time_.back()){ // time is too short
+				if (intervalCurr.first - prevEndTime > this->minIntervalDiffRatio_ * this->time_.back()){
 					tInterval.push_back(intervalCurr);
 					tIntervalIdx.push_back(tIntervalRawIdx[i]);
 				}
@@ -279,6 +280,11 @@ namespace timeOptimizer{
 			obstacleDist.push_back(minDist);
 		}
 		
+	}
+
+	void trajDivider::getNearestObstacles(std::vector<Eigen::Vector3d>& nearestObstacles, std::vector<bool>& mask){
+		nearestObstacles = this->nearestObstacles_;
+		mask = this->mask_;
 	}
 
 	void trajDivider::publishVisMsg(){
