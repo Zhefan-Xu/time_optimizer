@@ -11,15 +11,21 @@
 #include <Eigen/Eigen>
 #include <mosek.h>
 
+static void MSKAPI printstr(void *handle,
+                            const char str[]){
+  	printf("%s", str);
+} 
+
 namespace timeOptimizer{
 	class timeOptimizer{
 	private:
 		double vmax_;
 		double amax_;
+		double dt_;
 		std::vector<Eigen::Vector3d> posData_;
 		std::vector<Eigen::Vector3d> velData_;
 		std::vector<Eigen::Vector3d> accData_;
-		std::vector<Eigen::Vector3d> timeData_;
+		std::vector<std::pair<double, double>> timeInterval_;
 
 
 	public:
@@ -28,7 +34,9 @@ namespace timeOptimizer{
 		void loadTrajectory(const std::vector<Eigen::Vector3d>& posData, 
 							const std::vector<Eigen::Vector3d>& velData,
 							const std::vector<Eigen::Vector3d>& accData,
-							const std::vector<Eigen::Vector3d>& timeData);
+							double dt);
+		void loadTimeInterval(const std::vector<std::pair<double, double>>& timeInterval);
+		void divideData();
 		void optimize();
 	};
 }
