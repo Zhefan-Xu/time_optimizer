@@ -121,7 +121,9 @@ catkin_package(
 include_directories(
   include
   ${catkin_INCLUDE_DIRS}
+  ${PROJECT_SOURCE_DIR}/third_party/include
 )
+
 
 ## Declare a C++ library
 add_library(${PROJECT_NAME}
@@ -153,7 +155,7 @@ add_library(${PROJECT_NAME}
 # target_link_libraries(${PROJECT_NAME}_node
 #   ${catkin_LIBRARIES}
 # )
-target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES})
+target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES} ${PROJECT_SOURCE_DIR}/third_party/lib/libmosek64.so)
 
 #############
 ## Install ##
