@@ -1,7 +1,7 @@
 /*
 *	File: trajectoryDivider.h
 *	---------------
-*   dynamic exploration planner header file
+*   trajectory divider header file
 */
 
 #ifndef TRAJECTORY_DIVIDER_H

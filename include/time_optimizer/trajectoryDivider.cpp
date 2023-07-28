@@ -1,7 +1,7 @@
 /*
-*	File: dep.cpp
+*	File: trajectoryDivider.cpp
 *	---------------
-*   dynamic exploration planner implementation
+*   trajectory divider implementation
 */
 
 #include <time_optimizer/trajectoryDivider.h>
