@@ -8,8 +8,10 @@
 #ifndef TIME_OPTIMIZER_H
 #define TIME_OPTIMIZER_H
 
+#include <iostream>
 #include <Eigen/Eigen>
 #include <mosek.h>
+using std::cout; using std::endl;
 
 static void MSKAPI printstr(void *handle,
                             const char str[]){
