@@ -132,9 +132,35 @@ int main(int argc, char**argv){
 	double linearReparamFactor = linearFeasibilityReparam(traj, vmax, amax, dt);
 	cout << "Linear reparam factor is: " << linearReparamFactor << endl;
 
+	// obtain discrete position, velocity and acceleration data
+	std::vector<Eigen::Vector3d> posData;
+	std::vector<Eigen::Vector3d> velData;
+	std::vector<Eigen::Vector3d> accData;
+	double t = 0;
+	while (t * linearReparamFactor <= traj.getDuration()){
+		double trajTime = t * linearReparamFactor;
+		Eigen::Vector3d pos = traj.at(trajTime);
+		Eigen::Vector3d vel = traj.getDerivative().at(trajTime) * linearReparamFactor;
+		Eigen::Vector3d acc = traj.getDerivative().getDerivative().at(trajTime) * pow(linearReparamFactor, 2);
+		posData.push_back(pos);
+		velData.push_back(vel);
+		accData.push_back(acc);
+		t += dt;
+	}
+
+	// for (int i=0; i<int(posData.size()); ++i){
+	// 	cout << "pos: " << posData[i].transpose() << " , vel: " << velData[i].transpose() << ", acc: "  << accData[i].transpose() << endl;
+	// }
+
+	// velocity limits
+
+	cout << "Total trajectory time is: " << t - dt << endl;
 
 
 	timeOptimizer::timeOptimizer opt;
+	opt.loadTrajectory(posData, velData, accData, dt);
+	opt.loadTimeInterval(timeInterval);
+	opt.optimize();
 
 
 	return 0;

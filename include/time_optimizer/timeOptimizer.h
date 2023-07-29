@@ -29,6 +29,10 @@ namespace timeOptimizer{
 		std::vector<Eigen::Vector3d> accData_;
 		std::vector<std::pair<double, double>> timeInterval_;
 
+		std::vector<std::vector<Eigen::Vector3d>> posDataList_;
+		std::vector<std::vector<Eigen::Vector3d>> velDataList_;
+		std::vector<std::vector<Eigen::Vector3d>> accDataList_;
+
 
 	public:
 		timeOptimizer();
@@ -38,7 +42,10 @@ namespace timeOptimizer{
 							const std::vector<Eigen::Vector3d>& accData,
 							double dt);
 		void loadTimeInterval(const std::vector<std::pair<double, double>>& timeInterval);
-		void divideData();
+		void divideData(std::vector<std::vector<Eigen::Vector3d>>& posDataList, 
+						std::vector<std::vector<Eigen::Vector3d>>& velDataList,
+						std::vector<std::vector<Eigen::Vector3d>>& accDataList,
+						std::vector<bool>& obstacleInfoList);
 		void optimize();
 	};
 }
