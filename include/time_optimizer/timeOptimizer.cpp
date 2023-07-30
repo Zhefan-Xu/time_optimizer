@@ -148,6 +148,12 @@ namespace timeOptimizer{
 		int velContinuityConNum = int(posDataList.size()) - 1;
 		int accContinuityConNum = int(posDataList.size()) - 1;
 
+		// conic constraints
+		int coneNum = 0;
+		int numafe = 0;
+		int betaZetaConeNum = 0; // (0.5, beta_i, zeta_i) -> Q_r3
+		int gammaZetaConeNum = 0; // (gamma_i, zeta_i + zeta_i+1) -> Q_r3
+		int sAlphaConeNum = 1; // (0.5, s, alpha) -> Q_r(2+alphaNum)
 		for (int i=0; i<int(posDataList.size()); ++i){
 			int K = int(posDataList[i].size()) - 1;
 			alphaNumVec.push_back(K); alphaNum += K;
@@ -158,11 +164,14 @@ namespace timeOptimizer{
 			alphaBetaConNum += K;
 			velLimitsConNum += K+1; 
 			accLimitsConNum += K;
+
+			betaZetaConeNum += K+1;
+			gammaZetaConeNum += K;
 		}
 		varNum = alphaNum + betaNum + zetaNum + gammaNum + 1; // last slack variable for alpha
 		linearConNum = alphaBetaConNum + velLimitsConNum + accLimitsConNum + velBoundaryConNum + velBoundaryConNum + accBoundaryConNum + velContinuityConNum + accContinuityConNum;
-
-
+		coneNum = betaZetaConeNum + gammaZetaConeNum + sAlphaConeNum;
+		numafe = 3 * betaZetaConeNum + 3 * gammaZetaConeNum + (2 + alphaNum);
 
 		// create mosek environment
 		MSKrescodee r;
@@ -343,7 +352,51 @@ namespace timeOptimizer{
 						r = MSK_putconbound(task, currContraintNum, MSK_BK_FX, 0.0, 0.0);
 					}
 					++currContraintNum;
-				}		
+				}
+
+				// conic constraints	
+				MSKint64t domidx[coneNum] = {0};
+				int countDomain = 0;
+				if (r == MSK_RES_OK){
+					r = MSK_appendafes(task, numafe);
+				}	
+
+				// beta zeta conic constraints (0.5, beta_i, zeta_i) -> Q_r(3)
+				int currConeConstraintNum = 0;
+				int betaIdx1 = alphaNum;
+				int zetaIdx1 = alphaNum + betaNum;
+				for (int n=0; n<int(posDataList.size()) and r==MSK_RES_OK; ++n){
+					int K = int(posDataList[n].size()) - 1;
+					for (int i=0; i<K+1; ++i){
+						r = MSK_putafeg(task, currConeConstraintNum, 0.5);
+						++currConeConstraintNum;
+						if (r == MSK_RES_OK){
+							r = MSK_putafefentry(task, currConeConstraintNum, betaIdx1, 1.0);
+						}
+						++currConeConstraintNum;
+						if (r == MSK_RES_OK){
+							r = MSK_putafefentry(task, currConeConstraintNum, zetaIdx1, 1.0);
+						}
+						++currConeConstraintNum;
+						
+						betaIdx1 += 1;
+						zetaIdx1 += 1;
+
+						// assign cone domain
+						if (r == MSK_RES_OK){
+							r = MSK_appendrquadraticconedomain(task, 3, domidx+countDomain);
+						}
+						++countDomain;
+
+					}
+				}
+
+
+
+				// lastly, append all cone in sequence
+				if (r == MSK_RES_OK){
+					r = MSK_appendaccsseq(task, coneNum, domidx, numafe, 0, NULL);
+				}
 			}					
 		}
 	}
