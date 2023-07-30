@@ -152,7 +152,7 @@ namespace timeOptimizer{
 		int coneNum = 0;
 		int numafe = 0;
 		int betaZetaConeNum = 0; // (0.5, beta_i, zeta_i) -> Q_r3
-		int gammaZetaConeNum = 0; // (gamma_i, zeta_i + zeta_i+1) -> Q_r3
+		int gammaZetaConeNum = 0; // (gamma_i, zeta_i + zeta_i+1, sqrt(2)) -> Q_r3
 		int sAlphaConeNum = 1; // (0.5, s, alpha) -> Q_r(2+alphaNum)
 		for (int i=0; i<int(posDataList.size()); ++i){
 			int K = int(posDataList[i].size()) - 1;
@@ -215,7 +215,11 @@ namespace timeOptimizer{
 				}
 
 				// create linear constraints
+				if (r == MSK_RES_OK){
+					r = MSK_appendcons(task, linearConNum);
+				}
 				int currContraintNum = 0;
+				cout << "alpha beta" << endl;
 				// 1. alpha beta
 				int subi1[3] = {0, alphaNum, alphaNum+1};
 				double vali1[3] = {1.0, 1.0/this->dt_, -1.0/this->dt_};
@@ -236,7 +240,7 @@ namespace timeOptimizer{
 				}
 
 
-
+				cout << "vel" << endl;
 				// 2. velocity limits
 				int subi2[1] = {alphaNum}; 
 				for (int n=0; n<int(posDataList.size()) and r==MSK_RES_OK; ++n){
@@ -255,6 +259,7 @@ namespace timeOptimizer{
 				}
 
 
+				cout << "acc" << endl;
 				// 3. acceleration limits
 				int subi3[2] = {0, alphaNum}; 
 				for (int n=0; n<int(posDataList.size()) and r==MSK_RES_OK; ++n){
@@ -276,6 +281,7 @@ namespace timeOptimizer{
 					subi3[1] += 1;
 				}
 
+				cout << "vel boundary" << endl;
 				// 4. velocity boundary conditions
 				// V0
 				int subi4[1] = {alphaNum}; // for first beta
@@ -301,6 +307,7 @@ namespace timeOptimizer{
 				}				
 				++currContraintNum;
 
+				cout << "acc boundary" << endl;
 				// 5. acceleration boundary conditions
 				int subi5[2] = {0, alphaNum}; // for first alpha and beta
 				double initAccX = accDataList[0][0](0);
@@ -326,6 +333,7 @@ namespace timeOptimizer{
 				}
 				++currContraintNum;
 
+				cout << "vel conitnuity" << endl;
 				// 6. velocity continuity constraints
 				int subi6[2] = {alphaNum, alphaNum};
 				double vali6[2] = {1.0, -1.0};
@@ -340,6 +348,7 @@ namespace timeOptimizer{
 					++currContraintNum;
 				}
 
+				cout << "acc conitnuity" << endl;
 				// 7. acceleration conitnuity constraints
 				int subi7[2] = {0, 0};
 				double vali7[2] = {1.0, -1.0};
@@ -361,6 +370,7 @@ namespace timeOptimizer{
 					r = MSK_appendafes(task, numafe);
 				}	
 
+				cout << "beta zeta cone" << endl;
 				// beta zeta conic constraints (0.5, beta_i, zeta_i) -> Q_r(3)
 				int currConeConstraintNum = 0;
 				int betaIdx1 = alphaNum;
@@ -387,15 +397,80 @@ namespace timeOptimizer{
 							r = MSK_appendrquadraticconedomain(task, 3, domidx+countDomain);
 						}
 						++countDomain;
-
 					}
 				}
+
+				cout << "gamma zeta cone" << endl;
+				// gamma zeta conic constraints (gamma_i, zeta_i + zeta_i+1, sqrt(2)) -> Q_r(3)
+				int gammaIdx2 = alphaNum + betaNum + zetaNum;
+				int zetaIdx2 = alphaNum + betaNum;
+				for (int n=0; n<int(posDataList.size()) and r==MSK_RES_OK; ++n){
+					int K = int(posDataList[n].size()) - 1;
+					for (int i=0; i<K; ++i){
+						r = MSK_putafefentry(task, currConeConstraintNum, gammaIdx2, 1.0);
+						++currConeConstraintNum;
+						if (r == MSK_RES_OK){
+							r = MSK_putafefentry(task, currConeConstraintNum, zetaIdx2, 1.0);
+							r = MSK_putafefentry(task, currConeConstraintNum, zetaIdx2+1, 1.0);
+						} 
+						++currConeConstraintNum;
+						if (r == MSK_RES_OK){
+							r = MSK_putafeg(task, currConeConstraintNum, sqrt(2));
+						}
+						++currConeConstraintNum;
+
+						gammaIdx2 += 1;
+						zetaIdx2 += 1;
+
+						if (r == MSK_RES_OK){
+							r = MSK_appendrquadraticconedomain(task, 3, domidx+countDomain);
+							++countDomain;
+						}
+					}
+					zetaIdx2 += 1;
+				}
+
+				cout << "s alpha cone" << endl;
+				// s and alpha conic constraint (s, 0.5, alpha) -> Q_r(2+alphaNum)
+				if (r == MSK_RES_OK){ // s
+					r = MSK_putafefentry(task, currConeConstraintNum, varNum-1, 1.0);
+				}
+				++currConeConstraintNum;
+				
+				if (r == MSK_RES_OK){ // 0.5
+					r = MSK_putafeg(task, currConeConstraintNum, 0.5);
+				}
+				++currConeConstraintNum;
+				
+				int alphaIdx3 = 0;
+				for (int i=0; i<alphaNum and r == MSK_RES_OK; ++i){ // all alpha
+					r = MSK_putafefentry(task, currConeConstraintNum, alphaIdx3, 1.0);
+					++currConeConstraintNum;
+					++alphaIdx3;
+				}
+
+				if (r == MSK_RES_OK){
+					r = MSK_appendrquadraticconedomain(task, 2+alphaNum, domidx+countDomain);
+				}
+				++countDomain;
 
 
 
 				// lastly, append all cone in sequence
 				if (r == MSK_RES_OK){
 					r = MSK_appendaccsseq(task, coneNum, domidx, numafe, 0, NULL);
+				}
+
+
+				cout << "check the number of constraints." << endl;
+				cout << "Expected number of linear constraints: " << linearConNum << " " << "Added constraint num: " << currContraintNum << endl;
+				cout << "Expected cone constraints: " << numafe << " " << "added cone constraint num: " << currConeConstraintNum << endl; 
+				MSK_writedata(task,"data.ptf");
+
+				if (r == MSK_RES_OK){
+					MSKrescodee trmcode;
+					r = MSK_optimizetrm(task, &trmcode);
+					MSK_solutionsummary(task, MSK_STREAM_MSG);
 				}
 			}					
 		}
