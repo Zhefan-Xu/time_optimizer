@@ -21,6 +21,7 @@ static void MSKAPI printstr(void *handle,
 namespace timeOptimizer{
 	class timeOptimizer{
 	private:
+		double lambda_ = 0.5;
 		double vmax_;
 		double amax_;
 		double dt_;
