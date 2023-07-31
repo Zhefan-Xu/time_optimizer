@@ -54,6 +54,7 @@ namespace timeOptimizer{
 		bool optimize();
 		void extractSol(const std::vector<double>& sol);
 		double remapTime(double tau, double& alpha, double& beta);
+		double getDuration();
 	};
 }
 

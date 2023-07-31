@@ -37,7 +37,7 @@ int main(int argc, char**argv){
 	ros::init(argc, argv, "test_time_optimizer_node");
 	ros::NodeHandle nh;
 
-	int dataIdx = 5;
+	int dataIdx = 3;
 
 	// read control points
 	std::fstream controlPointFile;
@@ -175,6 +175,28 @@ int main(int argc, char**argv){
 	double alpha, beta;
 	cout << "Real Time at 3.0 is: " << opt.remapTime(3.0, alpha, beta) << " alpha, beta: " << alpha << " " << beta << endl;
 	cout << "Real Time at 30.0 is: " << opt.remapTime(30.0, alpha, beta) << " alpha, beta: " << alpha << " " << beta << endl;
+
+
+	// obtain new trajectory
+	t = 0.0;
+	for (t=0.0; t<opt.getDuration(); t+=dt){
+		double alpha, beta;
+		double optimizedTrajT = opt.remapTime(t, alpha, beta);
+		double trajT = optimizedTrajT * linearReparamFactor;
+
+		Eigen::Vector3d pos = traj.at(trajT);
+		Eigen::Vector3d velReparam = traj.getDerivative().at(trajT) * linearReparamFactor;
+		Eigen::Vector3d accReparam = traj.getDerivative().getDerivative().at(trajT) * pow(linearReparamFactor, 2);
+		Eigen::Vector3d vel = velReparam * sqrt(beta);
+		Eigen::Vector3d acc = velReparam * alpha + accReparam * beta;
+
+		// cout << beta << endl;
+		// cout << alpha << endl;
+		// cout << trajT << endl;
+		// cout << "origin vel: " << velReparam.transpose() << " acc: " << accReparam.transpose() << endl; 
+		cout << "Time: " << t << " pos: " << pos.transpose() << " vel: " << vel.transpose() << " acc: " << acc.transpose() << endl;
+
+	}
 
 	return 0;
 }

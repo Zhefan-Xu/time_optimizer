@@ -524,29 +524,27 @@ namespace timeOptimizer{
 								MSK_getxx(task, MSK_SOL_ITR, xx);
 								cout << "[TimeOptimizer]: Optimal allocation obtained." << endl;
 								std::vector<double> alphaSol, betaSol;
-								int alphaSolCount = 0;
-								for (int n=0; n<int(posDataList.size()); ++n){
-									int K = int(posDataList[n].size()) - 1;
-									for (int i=0; i<K; ++i){
-										if (n == int(posDataList.size() - 1) or i != K-1){
-											alphaSol.push_back(xx[alphaSolCount]);
-										}
-										++alphaSolCount;
-									}
-								}
-								this->alphaSol_ = alphaSol;
-
-
+								
 								int betaSolCount = 0;
 								for (int n=0; n<int(posDataList.size()); ++n){
 									int K = int(posDataList[n].size()) - 1;
 									for (int i=0; i<K+1; ++i){
-										if (n == int(posDataList.size())-1 or i != K){
+										if (i != K){
 											betaSol.push_back(xx[alphaNum+betaSolCount]);
+											// cout << "beta: " << xx[alphaNum+betaSolCount] << endl;
 										}
-										++betaSolCount;
+										betaSolCount += 1;
 									}
 								}
+								betaSol.push_back(xx[alphaNum+betaSolCount]);
+								// cout << "beta: " << xx[alphaNum+betaSolCount] << endl;
+
+								for (int i=0; i<int(betaSol.size())-1; ++i){
+									double alpha = (betaSol[i+1] - betaSol[i])/this->dt_;
+									alphaSol.push_back(alpha);
+									// cout << "alpha: " << alpha << endl;
+								}
+								this->alphaSol_ = alphaSol;
 								this->betaSol_ = betaSol;
 								this->extractSol(betaSol);
 								free(xx);
@@ -627,6 +625,13 @@ namespace timeOptimizer{
 		double t = this->trajTime_[i] + (tau - tStart)/(tEnd - tStart) * (this->trajTime_[i+1] - this->trajTime_[i]);
 		alpha = this->alphaSol_[i];
 		beta = this->betaSol_[i] + (tau - tStart)/(tEnd - tStart) * (this->betaSol_[i+1] - this->betaSol_[i]);
+		// cout << "beta size: " << this->betaSol_.size() << endl;
+		// cout << "alpha size: " << this->alphaSol_.size() << endl;
+		// cout << i << endl;
 		return t;
+	}
+
+	double timeOptimizer::getDuration(){
+		return this->realTime_.back();
 	}
 }
