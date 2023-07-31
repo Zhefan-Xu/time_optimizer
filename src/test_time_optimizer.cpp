@@ -156,15 +156,16 @@ int main(int argc, char**argv){
 
 	cout << "Total trajectory time is: " << t - dt << endl;
 
-	ros::Time startTime = ros::Time::now();
+	
 	timeOptimizer::timeOptimizer opt;
+	ros::Time startTime = ros::Time::now();
 	opt.setLimits(vmax, amax);
 	opt.loadTrajectory(posData, velData, accData, dt);
 	opt.loadTimeInterval(timeInterval);
-	opt.optimize();
+	bool success = opt.optimize();
 	ros::Time endTime = ros::Time::now();
 	cout << "total time: " << (endTime - startTime).toSec() << endl;
-
+	cout << "success: " << success << endl;
 
 	return 0;
 }

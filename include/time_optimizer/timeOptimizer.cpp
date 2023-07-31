@@ -106,7 +106,7 @@ namespace timeOptimizer{
 
 	}
 	
-	void timeOptimizer::optimize(){
+	bool timeOptimizer::optimize(){
 		std::vector<std::vector<Eigen::Vector3d>> posDataList, velDataList, accDataList;
 		std::vector<bool> obstacleInfoList;
 		this->divideData(posDataList, velDataList, accDataList, obstacleInfoList);
@@ -191,57 +191,56 @@ namespace timeOptimizer{
 					r = MSK_appendvars(task, varNum); // all variable will be fixed at x = 0
 				}
 
-				// assign names to each variable
-				int varNameCount = 0;
-				// alpha
-				for (int n=0; n<int(posDataList.size()) and r==MSK_RES_OK; ++n){
-					int K = int(posDataList[n].size()) - 1;
-					for (int i=0; i<K; ++i){
-						std::string name = "a_" + std::to_string(n) + "^" + std::to_string(i);
-						MSK_putvarname(task, varNameCount, name.c_str());
-						++varNameCount;
-					}
-				}
+				// // assign names to each variable
+				// {
+				// 	int varNameCount = 0;
+				// 	// alpha
+				// 	for (int n=0; n<int(posDataList.size()) and r==MSK_RES_OK; ++n){
+				// 		int K = int(posDataList[n].size()) - 1;
+				// 		for (int i=0; i<K; ++i){
+				// 			std::string name = "a_" + std::to_string(n) + "^" + std::to_string(i);
+				// 			MSK_putvarname(task, varNameCount, name.c_str());
+				// 			++varNameCount;
+				// 		}
+				// 	}
 
-				// beta
-				for (int n=0; n<int(posDataList.size()) and r==MSK_RES_OK; ++n){
-					int K = int(posDataList[n].size()) - 1;
-					for (int i=0; i<K+1; ++i){
-						std::string name = "b_" + std::to_string(n) + "^" + std::to_string(i);
-						MSK_putvarname(task, varNameCount, name.c_str());					
-						++varNameCount;
-					}
-				}
+				// 	// beta
+				// 	for (int n=0; n<int(posDataList.size()) and r==MSK_RES_OK; ++n){
+				// 		int K = int(posDataList[n].size()) - 1;
+				// 		for (int i=0; i<K+1; ++i){
+				// 			std::string name = "b_" + std::to_string(n) + "^" + std::to_string(i);
+				// 			MSK_putvarname(task, varNameCount, name.c_str());					
+				// 			++varNameCount;
+				// 		}
+				// 	}
 
-				// zeta
-				for (int n=0; n<int(posDataList.size()) and r==MSK_RES_OK; ++n){
-					int K = int(posDataList[n].size()) - 1;
-					for (int i=0; i<K+1; ++i){
-						std::string name = "z_" + std::to_string(n) + "^" + std::to_string(i);
-						MSK_putvarname(task, varNameCount, name.c_str());					
-						++varNameCount;
-					}
-				}
-				
-				// gamma
-				for (int n=0; n<int(posDataList.size()) and r==MSK_RES_OK; ++n){
-					int K = int(posDataList[n].size()) - 1;
-					for (int i=0; i<K; ++i){
-						std::string name = "y_" + std::to_string(n) + "^" + std::to_string(i);
-						MSK_putvarname(task, varNameCount, name.c_str());					
-						++varNameCount;
-					}
-				}
+				// 	// zeta
+				// 	for (int n=0; n<int(posDataList.size()) and r==MSK_RES_OK; ++n){
+				// 		int K = int(posDataList[n].size()) - 1;
+				// 		for (int i=0; i<K+1; ++i){
+				// 			std::string name = "z_" + std::to_string(n) + "^" + std::to_string(i);
+				// 			MSK_putvarname(task, varNameCount, name.c_str());					
+				// 			++varNameCount;
+				// 		}
+				// 	}
+					
+				// 	// gamma
+				// 	for (int n=0; n<int(posDataList.size()) and r==MSK_RES_OK; ++n){
+				// 		int K = int(posDataList[n].size()) - 1;
+				// 		for (int i=0; i<K; ++i){
+				// 			std::string name = "y_" + std::to_string(n) + "^" + std::to_string(i);
+				// 			MSK_putvarname(task, varNameCount, name.c_str());					
+				// 			++varNameCount;
+				// 		}
+				// 	}
 
-				// s
-				std::string sName = "s";
-				MSK_putvarname(task, varNum-1, sName.c_str());
-
+				// 	// s
+				// 	std::string sName = "s";
+				// 	MSK_putvarname(task, varNum-1, sName.c_str());
+				// }
 
 				// set linear objective sum(2 * dt * gamma) + lambda * s * dt
 				if (r == MSK_RES_OK){ // for gamma
-					double cgamma[gammaNum] = {2.0 * this->dt_};
-					// r = MSK_putcslice(task, alphaNum+betaNum+zetaNum, alphaNum+betaNum+zetaNum+gammaNum, cgamma);
 					for (int i=alphaNum+betaNum+zetaNum; i<alphaNum+betaNum+zetaNum+gammaNum and r==MSK_RES_OK; ++i){
 						r = MSK_putcj(task, i, 2.0 * this->dt_);
 					}
@@ -366,7 +365,7 @@ namespace timeOptimizer{
 					r = MSK_putarow(task, currContraintNum, 2, subi5, vali5);
 				}
 				if (r == MSK_RES_OK){
-					r == MSK_putconbound(task, currContraintNum, MSK_BK_FX, initAccX, initAccX);
+					r = MSK_putconbound(task, currContraintNum, MSK_BK_FX, initAccX, initAccX);
 				}
 				++currContraintNum;
 
@@ -379,7 +378,7 @@ namespace timeOptimizer{
 					r = MSK_putarow(task, currContraintNum, 2, subi5, vali5);
 				}
 				if (r == MSK_RES_OK){
-					r == MSK_putconbound(task, currContraintNum, MSK_BK_FX, endAccX, endAccX);
+					r = MSK_putconbound(task, currContraintNum, MSK_BK_FX, endAccX, endAccX);
 				}
 				// ++currContraintNum;
 
@@ -534,14 +533,56 @@ namespace timeOptimizer{
 				// cout << "check the number of constraints." << endl;
 				// cout << "Expected number of linear constraints: " << linearConNum << " " << "Added constraint num: " << currContraintNum << endl;
 				// cout << "Expected cone constraints: " << numafe << " " << "added cone constraint num: " << currConeConstraintNum << endl; 
-				MSK_writedata(task,"data.ptf");
+				// MSK_writedata(task,"data.ptf");
+
 				MSK_putintparam(task, MSK_IPAR_INFEAS_REPORT_AUTO, MSK_ON);
 				if (r == MSK_RES_OK){
 					MSKrescodee trmcode;
 					r = MSK_optimizetrm(task, &trmcode);
 					MSK_solutionsummary(task, MSK_STREAM_MSG);
+					MSKsolstae solsta;
+					if (r == MSK_RES_OK){
+						r = MSK_getsolsta(task, MSK_SOL_ITR, &solsta);
+					}
+
+					switch (solsta){
+						case MSK_SOL_STA_OPTIMAL:
+						{
+							double *xx = (double*) calloc(varNum, sizeof(double));
+							if (xx){
+								MSK_getxx(task, MSK_SOL_ITR, xx);
+								cout << "[TimeOptimizer]: Optimal allocation obtained." << endl;
+
+								this->extractSol(xx);
+								free(xx);
+								MSK_deletetask(&task);
+								return true;
+							}
+						}
+						case MSK_SOL_STA_DUAL_INFEAS_CER:
+							cout << "[TimeOptimizer]: Dual infeasible." << endl;
+			            case MSK_SOL_STA_PRIM_INFEAS_CER:
+			            	cout << "[TimeOptimizer]: Primal or dual infeasibility certificate found." << endl;
+			              	break;
+			            case MSK_SOL_STA_UNKNOWN:
+			            	cout << "[TimeOptimizer]: The status of the solution could not be determined. Termination code: " << trmcode << endl;
+			              	break;
+			            default:
+			            	cout << "[TimeOptimizer]: Other solution status." << endl;
+			              	break;
+					}
 				}
-			}					
+			}			
 		}
+		MSK_deletetask(&task);
+		return false;		
+	}
+
+	void timeOptimizer::extractSol(double* sol){
+
+	}
+
+	double timeOptimizer::remapTime(double tau){
+		return 0;
 	}
 }

@@ -34,6 +34,8 @@ namespace timeOptimizer{
 		std::vector<std::vector<Eigen::Vector3d>> velDataList_;
 		std::vector<std::vector<Eigen::Vector3d>> accDataList_;
 
+		std::vector<double> trajTime_;
+		std::vector<double> realTime_;
 
 	public:
 		timeOptimizer();
@@ -47,7 +49,9 @@ namespace timeOptimizer{
 						std::vector<std::vector<Eigen::Vector3d>>& velDataList,
 						std::vector<std::vector<Eigen::Vector3d>>& accDataList,
 						std::vector<bool>& obstacleInfoList);
-		void optimize();
+		bool optimize();
+		void extractSol(double* sol);
+		double remapTime(double tau);
 	};
 }
 
