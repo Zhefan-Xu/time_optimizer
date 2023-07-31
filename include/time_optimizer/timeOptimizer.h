@@ -50,7 +50,7 @@ namespace timeOptimizer{
 						std::vector<std::vector<Eigen::Vector3d>>& accDataList,
 						std::vector<bool>& obstacleInfoList);
 		bool optimize();
-		void extractSol(double* sol);
+		void extractSol(const std::vector<double>& sol);
 		double remapTime(double tau);
 	};
 }

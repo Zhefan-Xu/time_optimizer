@@ -552,8 +552,19 @@ namespace timeOptimizer{
 							if (xx){
 								MSK_getxx(task, MSK_SOL_ITR, xx);
 								cout << "[TimeOptimizer]: Optimal allocation obtained." << endl;
-
-								this->extractSol(xx);
+								std::vector<double> betaSol;
+								int betaSolCount = 0;
+								for (int n=0; n<int(posDataList.size()); ++n){
+									int K = int(posDataList[n].size()) - 1;
+									for (int i=0; i<K+1; ++i){
+										if (n == int(posDataList.size())-1 or i != K){
+											betaSol.push_back(xx[alphaNum+betaSolCount]);
+										}
+										++betaSolCount;
+									}
+								}
+							
+								this->extractSol(betaSol);
 								free(xx);
 								MSK_deletetask(&task);
 								return true;
@@ -578,11 +589,45 @@ namespace timeOptimizer{
 		return false;		
 	}
 
-	void timeOptimizer::extractSol(double* sol){
+	void timeOptimizer::extractSol(const std::vector<double>& beta){
+		this->trajTime_.clear();
+		this->realTime_.clear();
 
+		// for (double b : beta){
+		// 	cout << b << endl;
+		// }
+
+		double t = 0.0;
+		double tau = 0.0;
+		this->trajTime_.push_back(t);
+		this->realTime_.push_back(tau);
+		for (int i=0; i<int(beta.size())-1; ++i){
+			t += this->dt_;
+			tau += 2.0 * this->dt_/(sqrt(beta[i]) + sqrt(beta[i+1]));
+			this->trajTime_.push_back(t);
+			this->realTime_.push_back(tau);
+		}
+
+		// for (int i=0; i<int(this->trajTime_.size()); ++i){
+		// 	cout << "real time: " << this->realTime_[i] << " traj time: " << this->trajTime_[i] << endl; 
+		// }
 	}
 
 	double timeOptimizer::remapTime(double tau){
-		return 0;
+		if (tau < 0) return 0;
+		if (tau > this->realTime_.back()) return this->trajTime_.back();
+
+		int i;
+		double tStart, tEnd;
+		for (i=0; i<int(this->realTime_.size())-1; ++i){
+			tStart = this->realTime_[i];
+			tEnd = this->realTime_[i+1];
+			if (tau >= tStart and tau <= tEnd){
+				break;
+			}
+		}
+
+		double t = this->trajTime_[i] + (tau - tStart)/(tEnd - tStart) * (this->trajTime_[i+1] - this->trajTime_[i]);
+		return t;
 	}
 }

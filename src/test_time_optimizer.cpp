@@ -167,5 +167,8 @@ int main(int argc, char**argv){
 	cout << "total time: " << (endTime - startTime).toSec() << endl;
 	cout << "success: " << success << endl;
 
+	cout << "Real Time at 3.0 is: " << opt.remapTime(3.0) << endl;
+	cout << "Real Time at 30.0 is: " << opt.remapTime(30.0) << endl;
+
 	return 0;
 }
