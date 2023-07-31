@@ -13,6 +13,7 @@ namespace timeOptimizer{
 	void timeOptimizer::setLimits(double vmax, double amax){
 		this->vmax_ = vmax;
 		this->amax_ = amax;
+		this->vob_ = std::min(this->vmax_*0.5, 0.5);
 	}
 
 	void timeOptimizer::loadTrajectory(const std::vector<Eigen::Vector3d>& posData, 
@@ -647,8 +648,47 @@ namespace timeOptimizer{
 			}
 		}
 		else{
+			int countObstaclePoint = 0;
+			for (int i=0; i<int(this->obstacleData_.size()); ++i){
+				if (this->obstacleData_[i](0) == 1.0){
+					++countObstaclePoint;
+				}
+			}
 
+			double alphaP = this->alphaCollision_/double(countObstaclePoint);
+			for (int i=0; i<int(this->posData_.size()); ++i){
+				Eigen::Vector4d ob = this->obstacleData_[i];
+				if (ob(0) == 1.0){
+					Eigen::Vector3d currPos = this->posData_[i];
+					Eigen::Vector3d currObs (ob(1), ob(2), ob(3));
+					
+					Eigen::Vector3d diff = currPos - currObs;
+					Eigen::Vector3d a = diff/diff.norm();
+					Eigen::Vector3d xBar = currPos - currObs;
+					double b = 0.0;
+					double erfTerm = erfinvf(1.0 - 2.0 * alphaP);
+
+					double var = 0.5 * pow(((a.transpose() * xBar - b)/erfTerm), 2)/(a.transpose() * a);
+					double velLimit = this->cov2vel(var);
+					this->velocityLimits_.push_back(velLimit);
+				}
+				else{
+					this->velocityLimits_.push_back(this->vmax_);
+				}
+				cout << this->velocityLimits_.back() << endl;
+			}
 		}
+	}
+
+	double timeOptimizer::cov2vel(double var){
+		// std = k * v + b
+		double k = 0.2;
+		double b = 0.1; 
+		var -= pow(this->obstacleStd_, 2);
+		double std = sqrt(var);
+		double vel = (std - b)/ double(k);
+		vel = std::max(this->vob_, std::min(this->vmax_, vel));
+		return vel;
 	}
 
 	double timeOptimizer::getDuration(){

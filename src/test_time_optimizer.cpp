@@ -167,6 +167,7 @@ int main(int argc, char**argv){
 	opt.setLimits(vmax, amax);
 	opt.loadTrajectory(posData, velData, accData, dt);
 	opt.loadTimeInterval(timeInterval);
+	opt.loadObstacles(nearestObstacles);
 	bool success = opt.optimize();
 	ros::Time endTime = ros::Time::now();
 	cout << "total time: " << (endTime - startTime).toSec() << endl;

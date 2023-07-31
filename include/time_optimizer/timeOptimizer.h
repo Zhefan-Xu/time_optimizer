@@ -11,6 +11,7 @@
 #include <iostream>
 #include <Eigen/Eigen>
 #include <mosek.h>
+#include <time_optimizer/utils.h>
 using std::cout; using std::endl;
 
 static void MSKAPI printstr(void *handle,
@@ -21,8 +22,11 @@ static void MSKAPI printstr(void *handle,
 namespace timeOptimizer{
 	class timeOptimizer{
 	private:
+		double alphaCollision_ = 0.05;
+		double obstacleStd_ = 0.1;
 		double lambda_ = 0.5;
 		double vmax_;
+		double vob_; // velocity for meeting obstacles
 		double amax_;
 		double dt_;
 		std::vector<Eigen::Vector3d> posData_;
@@ -55,6 +59,7 @@ namespace timeOptimizer{
 		void extractSol(const std::vector<double>& sol);
 		double remapTime(double tau, double& alpha, double& beta);
 		void getVelocityLimits();
+		double cov2vel(double var);
 		double getDuration();
 	};
 }
