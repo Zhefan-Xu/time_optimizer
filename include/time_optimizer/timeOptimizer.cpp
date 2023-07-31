@@ -184,7 +184,7 @@ namespace timeOptimizer{
 			r = MSK_maketask(env, 0, 0, &task);
 
 			if (r == MSK_RES_OK){
-				MSK_linkfunctotaskstream(task, MSK_STREAM_LOG, NULL, printstr);
+				// MSK_linkfunctotaskstream(task, MSK_STREAM_LOG, NULL, printstr);
 
 				// create variables
 				if (r == MSK_RES_OK){
@@ -268,7 +268,6 @@ namespace timeOptimizer{
 					r = MSK_appendcons(task, linearConNum);
 				}
 				int currContraintNum = 0;
-				// cout << "alpha beta" << endl;
 				// 1. alpha beta
 				int subi1[3] = {0, alphaNum, alphaNum+1};
 				double vali1[3] = {1.0, 1.0/this->dt_, -1.0/this->dt_};
@@ -289,7 +288,6 @@ namespace timeOptimizer{
 				}
 
 
-				// cout << "vel" << endl;
 				// 2. velocity limits
 				int subi2[1] = {alphaNum}; 
 				for (int n=0; n<int(posDataList.size()) and r==MSK_RES_OK; ++n){
@@ -308,7 +306,6 @@ namespace timeOptimizer{
 				}
 
 
-				// cout << "acc" << endl;
 				// 3. acceleration limits
 				int subi3[2] = {0, alphaNum}; 
 				for (int n=0; n<int(posDataList.size()) and r==MSK_RES_OK; ++n){
@@ -330,7 +327,6 @@ namespace timeOptimizer{
 					subi3[1] += 1;
 				}
 
-				// cout << "vel boundary" << endl;
 				// 4. velocity boundary conditions
 				// V0
 				int subi4[1] = {alphaNum}; // for first beta
@@ -356,7 +352,6 @@ namespace timeOptimizer{
 				}				
 				++currContraintNum;
 
-				// cout << "acc boundary" << endl;
 				// 5. acceleration boundary conditions
 				int subi5[2] = {0, alphaNum}; // for first alpha and beta
 				double initAccX = accDataList[0][0](0);
@@ -380,28 +375,8 @@ namespace timeOptimizer{
 				if (r == MSK_RES_OK){
 					r = MSK_putconbound(task, currContraintNum, MSK_BK_FX, endAccX, endAccX);
 				}
-				// ++currContraintNum;
-
-				// int subi5[1] = {0};
-				// double vali5[1] = {1.0};
-				// if (r == MSK_RES_OK){
-				// 	r = MSK_putarow(task, currContraintNum, 1, subi5, vali5);
-				// }
-				// if (r == MSK_RES_OK){
-				// 	r == MSK_putconbound(task, currContraintNum, MSK_BK_FX, 0.0, 0.0);
-				// }
-				// ++currContraintNum;	
-
-				// subi5[0] = {alphaNum-1};
-				// if (r == MSK_RES_OK){
-				// 	r = MSK_putarow(task, currContraintNum, 1, subi5, vali5);
-				// }
-				// if (r == MSK_RES_OK){
-				// 	r == MSK_putconbound(task, currContraintNum, MSK_BK_FX, 0.0, 0.0);
-				// }
 				++currContraintNum;				
 
-				// cout << "vel conitnuity" << endl;
 				// 6. velocity continuity constraints
 				int subi6[2] = {alphaNum, alphaNum};
 				double vali6[2] = {1.0, -1.0};
@@ -416,7 +391,6 @@ namespace timeOptimizer{
 					++currContraintNum;
 				}
 
-				// cout << "acc conitnuity" << endl;
 				// 7. acceleration conitnuity constraints
 				int subi7[2] = {0, 0};
 				double vali7[2] = {1.0, -1.0};
@@ -438,7 +412,6 @@ namespace timeOptimizer{
 					r = MSK_appendafes(task, numafe);
 				}	
 
-				// cout << "beta zeta cone" << endl;
 				// beta zeta conic constraints (0.5, beta_i, zeta_i) -> Q_r(3)
 				int currConeConstraintNum = 0;
 				int betaIdx1 = alphaNum;
@@ -468,7 +441,6 @@ namespace timeOptimizer{
 					}
 				}
 
-				// cout << "gamma zeta cone" << endl;
 				// gamma zeta conic constraints (gamma_i, zeta_i + zeta_i+1, sqrt(2)) -> Q_r(3)
 				int gammaIdx2 = alphaNum + betaNum + zetaNum;
 				int zetaIdx2 = alphaNum + betaNum;
@@ -498,7 +470,6 @@ namespace timeOptimizer{
 					zetaIdx2 += 1;
 				}
 
-				// cout << "s alpha cone" << endl;
 				// s and alpha conic constraint (s, 0.5, alpha) -> Q_r(2+alphaNum)
 				if (r == MSK_RES_OK){ // s
 					r = MSK_putafefentry(task, currConeConstraintNum, varNum-1, 1.0);
@@ -535,11 +506,11 @@ namespace timeOptimizer{
 				// cout << "Expected cone constraints: " << numafe << " " << "added cone constraint num: " << currConeConstraintNum << endl; 
 				// MSK_writedata(task,"data.ptf");
 
-				MSK_putintparam(task, MSK_IPAR_INFEAS_REPORT_AUTO, MSK_ON);
+				// MSK_putintparam(task, MSK_IPAR_INFEAS_REPORT_AUTO, MSK_ON);
 				if (r == MSK_RES_OK){
 					MSKrescodee trmcode;
 					r = MSK_optimizetrm(task, &trmcode);
-					MSK_solutionsummary(task, MSK_STREAM_MSG);
+					// MSK_solutionsummary(task, MSK_STREAM_MSG);
 					MSKsolstae solsta;
 					if (r == MSK_RES_OK){
 						r = MSK_getsolsta(task, MSK_SOL_ITR, &solsta);
@@ -552,7 +523,20 @@ namespace timeOptimizer{
 							if (xx){
 								MSK_getxx(task, MSK_SOL_ITR, xx);
 								cout << "[TimeOptimizer]: Optimal allocation obtained." << endl;
-								std::vector<double> betaSol;
+								std::vector<double> alphaSol, betaSol;
+								int alphaSolCount = 0;
+								for (int n=0; n<int(posDataList.size()); ++n){
+									int K = int(posDataList[n].size()) - 1;
+									for (int i=0; i<K; ++i){
+										if (n == int(posDataList.size() - 1) or i != K-1){
+											alphaSol.push_back(xx[alphaSolCount]);
+										}
+										++alphaSolCount;
+									}
+								}
+								this->alphaSol_ = alphaSol;
+
+
 								int betaSolCount = 0;
 								for (int n=0; n<int(posDataList.size()); ++n){
 									int K = int(posDataList[n].size()) - 1;
@@ -563,7 +547,7 @@ namespace timeOptimizer{
 										++betaSolCount;
 									}
 								}
-							
+								this->betaSol_ = betaSol;
 								this->extractSol(betaSol);
 								free(xx);
 								MSK_deletetask(&task);
@@ -613,12 +597,25 @@ namespace timeOptimizer{
 		// }
 	}
 
-	double timeOptimizer::remapTime(double tau){
-		if (tau < 0) return 0;
-		if (tau > this->realTime_.back()) return this->trajTime_.back();
 
-		int i;
-		double tStart, tEnd;
+	// v = v_traj * sqrt(beta)
+	// a = v_traj * alpha + a_traj * beta
+	double timeOptimizer::remapTime(double tau, double& alpha, double& beta){
+		if (this->trajTime_.size() == 0 or this->realTime_.size() == 0) return 0.0;
+		if (tau < 0){
+			alpha = this->alphaSol_[0];
+			beta = this->betaSol_[0];
+			return 0.0;
+		}
+		if (tau > this->realTime_.back()){
+			alpha = this->alphaSol_.back();
+			beta = this->betaSol_.back();
+			return this->trajTime_.back();
+		} 
+
+		int i = 0;
+		double tStart = 0.0;
+		double tEnd = 0.0;
 		for (i=0; i<int(this->realTime_.size())-1; ++i){
 			tStart = this->realTime_[i];
 			tEnd = this->realTime_[i+1];
@@ -628,6 +625,8 @@ namespace timeOptimizer{
 		}
 
 		double t = this->trajTime_[i] + (tau - tStart)/(tEnd - tStart) * (this->trajTime_[i+1] - this->trajTime_[i]);
+		alpha = this->alphaSol_[i];
+		beta = this->betaSol_[i] + (tau - tStart)/(tEnd - tStart) * (this->betaSol_[i+1] - this->betaSol_[i]);
 		return t;
 	}
 }

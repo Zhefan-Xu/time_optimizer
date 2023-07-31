@@ -37,9 +37,12 @@ int main(int argc, char**argv){
 	ros::init(argc, argv, "test_time_optimizer_node");
 	ros::NodeHandle nh;
 
+	int dataIdx = 5;
+
 	// read control points
 	std::fstream controlPointFile;
-	controlPointFile.open("../data/control_points_data/control_point_divide3.txt", std::ios::in);
+	std::string controlPointFileName = "../data/control_points_data/control_point_divide" + std::to_string(dataIdx) + ".txt";
+	controlPointFile.open(controlPointFileName, std::ios::in);
 
 	std::vector<Eigen::Vector3d> controlPointsVec;
 	if (controlPointFile.is_open()){
@@ -72,7 +75,8 @@ int main(int argc, char**argv){
 
 	// read time divide data
 	std::fstream timeDivideFile;
-	timeDivideFile.open("../data/divide_time_data/divide_time_3.txt", std::ios::in);
+	std::string timeDivideFilename = "../data/divide_time_data/divide_time_" + std::to_string(dataIdx) + ".txt";
+	timeDivideFile.open(timeDivideFilename, std::ios::in);
 
 	std::vector<std::pair<double, double>> timeInterval;
 	if (timeDivideFile.is_open()){
@@ -97,6 +101,7 @@ int main(int argc, char**argv){
 
 	// read nearest obstacle data
 	std::fstream nearestObstacleFile;
+	std::string nearestObstacleFilename = "../data/nearest_obstacle_data/nearest_obstacles" + std::to_string(dataIdx) + ".txt";
 	nearestObstacleFile.open("../data/nearest_obstacle_data/nearest_obstacles3.txt", std::ios::in);
 
 	std::vector<Eigen::Vector4d> nearestObstacles;
@@ -167,8 +172,9 @@ int main(int argc, char**argv){
 	cout << "total time: " << (endTime - startTime).toSec() << endl;
 	cout << "success: " << success << endl;
 
-	cout << "Real Time at 3.0 is: " << opt.remapTime(3.0) << endl;
-	cout << "Real Time at 30.0 is: " << opt.remapTime(30.0) << endl;
+	double alpha, beta;
+	cout << "Real Time at 3.0 is: " << opt.remapTime(3.0, alpha, beta) << " alpha, beta: " << alpha << " " << beta << endl;
+	cout << "Real Time at 30.0 is: " << opt.remapTime(30.0, alpha, beta) << " alpha, beta: " << alpha << " " << beta << endl;
 
 	return 0;
 }

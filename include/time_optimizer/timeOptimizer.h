@@ -36,6 +36,8 @@ namespace timeOptimizer{
 
 		std::vector<double> trajTime_;
 		std::vector<double> realTime_;
+		std::vector<double> alphaSol_;
+		std::vector<double> betaSol_;
 
 	public:
 		timeOptimizer();
@@ -51,7 +53,7 @@ namespace timeOptimizer{
 						std::vector<bool>& obstacleInfoList);
 		bool optimize();
 		void extractSol(const std::vector<double>& sol);
-		double remapTime(double tau);
+		double remapTime(double tau, double& alpha, double& beta);
 	};
 }
 
