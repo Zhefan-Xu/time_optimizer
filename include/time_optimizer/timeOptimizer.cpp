@@ -23,6 +23,13 @@ namespace timeOptimizer{
 		this->velData_ = velData;
 		this->accData_ = accData;
 		this->dt_ = dt;
+		this->getVelocityLimits();
+	}
+
+	void timeOptimizer::loadObstacles(const std::vector<Eigen::Vector4d>& obstacleData){
+		this->obstacleData_ = obstacleData;
+		// then update velocity limits
+		this->getVelocityLimits();
 	}
 
 	void timeOptimizer::loadTimeInterval(const std::vector<std::pair<double, double>>& timeInterval){
@@ -32,13 +39,13 @@ namespace timeOptimizer{
 	void timeOptimizer::divideData(std::vector<std::vector<Eigen::Vector3d>>& posDataList, 
 						std::vector<std::vector<Eigen::Vector3d>>& velDataList,
 						std::vector<std::vector<Eigen::Vector3d>>& accDataList,
-						std::vector<bool>& obstacleInfoList){
-		cout << "start divide data based on the time interval." << endl;
-
+						std::vector<bool>& obstacleInfoList,
+						std::vector<std::vector<double>>& velocityLimitsList){
 		if (this->timeInterval_.size() == 0){
 			posDataList.push_back(this->posData_);
 			velDataList.push_back(this->velData_);
 			accDataList.push_back(this->accData_);
+			velocityLimitsList.push_back(this->velocityLimits_);
 			obstacleInfoList.push_back(false);
 		}
 		else{
@@ -47,6 +54,7 @@ namespace timeOptimizer{
 			bool prevInObstacleRange = false;
 			bool inObstacleRange = false;
 			std::vector<Eigen::Vector3d> posDataDivide, velDataDivide, accDataDivide;
+			std::vector<double> velocityLimitsDivide;
 			for (int i=0; i<int(this->posData_.size()); ++i){
 				std::pair<double, double> interval = this->timeInterval_[intervalIdx];
 				if (t >= interval.first and t <= interval.second){
@@ -59,6 +67,7 @@ namespace timeOptimizer{
 				posDataDivide.push_back(this->posData_[i]);
 				velDataDivide.push_back(this->velData_[i]);
 				accDataDivide.push_back(this->accData_[i]);
+				velocityLimitsDivide.push_back(this->velocityLimits_[i]);
 
 				if (i == 0){
 					if (inObstacleRange){
@@ -73,11 +82,13 @@ namespace timeOptimizer{
 						posDataList.push_back(posDataDivide);
 						velDataList.push_back(velDataDivide);
 						accDataList.push_back(accDataDivide);
+						velocityLimitsList.push_back(velocityLimitsDivide);
 						obstacleInfoList.push_back(false);
 
 						posDataDivide = std::vector<Eigen::Vector3d> {this->posData_[i]};
 						velDataDivide = std::vector<Eigen::Vector3d> {this->velData_[i]};
 						accDataDivide = std::vector<Eigen::Vector3d> {this->accData_[i]};
+						velocityLimitsDivide = std::vector<double> {this->velocityLimits_[i]};
 						if (intervalIdx != int(this->timeInterval_.size()-1)){
 							++intervalIdx;
 						}
@@ -86,11 +97,13 @@ namespace timeOptimizer{
 						posDataList.push_back(posDataDivide);
 						velDataList.push_back(velDataDivide);
 						accDataList.push_back(accDataDivide);
+						velocityLimitsList.push_back(velocityLimitsDivide);
 						obstacleInfoList.push_back(true);
 
 						posDataDivide = std::vector<Eigen::Vector3d> {this->posData_[i]};
 						velDataDivide = std::vector<Eigen::Vector3d> {this->velData_[i]};
-						accDataDivide = std::vector<Eigen::Vector3d> {this->accData_[i]};						
+						accDataDivide = std::vector<Eigen::Vector3d> {this->accData_[i]};
+						velocityLimitsDivide = std::vector<double> {this->velocityLimits_[i]};						
 					}
 				}
 				prevInObstacleRange = inObstacleRange;
@@ -101,15 +114,18 @@ namespace timeOptimizer{
 			posDataList.push_back(posDataDivide);
 			velDataList.push_back(velDataDivide);
 			accDataList.push_back(accDataDivide);
+			velocityLimitsList.push_back(velocityLimitsDivide);
 			obstacleInfoList.push_back(prevInObstacleRange);
 		}
 
 	}
 	
 	bool timeOptimizer::optimize(){
+		bool optimizeSuccess = false;
 		std::vector<std::vector<Eigen::Vector3d>> posDataList, velDataList, accDataList;
 		std::vector<bool> obstacleInfoList;
-		this->divideData(posDataList, velDataList, accDataList, obstacleInfoList);
+		std::vector<std::vector<double>> velocityLimitsList;
+		this->divideData(posDataList, velDataList, accDataList, obstacleInfoList, velocityLimitsList);
 
 		// data check
 		// double t = 0;
@@ -298,7 +314,8 @@ namespace timeOptimizer{
 						double vali2[1] = {pow(velSum, 2)};
 						r = MSK_putarow(task, currContraintNum, 1, subi2, vali2);
 						if (r == MSK_RES_OK){
-							r = MSK_putconbound(task, currContraintNum, MSK_BK_UP, -MSK_INFINITY, pow(this->vmax_, 2));
+							r = MSK_putconbound(task, currContraintNum, MSK_BK_UP, -MSK_INFINITY, pow(velocityLimitsList[n][i], 2));
+							// r = MSK_putconbound(task, currContraintNum, MSK_BK_UP, -MSK_INFINITY, pow(this->vmax_, 2));
 						}
 						subi2[0] += 1;
 						++currContraintNum;
@@ -531,25 +548,21 @@ namespace timeOptimizer{
 									for (int i=0; i<K+1; ++i){
 										if (i != K){
 											betaSol.push_back(xx[alphaNum+betaSolCount]);
-											// cout << "beta: " << xx[alphaNum+betaSolCount] << endl;
 										}
 										betaSolCount += 1;
 									}
 								}
 								betaSol.push_back(xx[alphaNum+betaSolCount]);
-								// cout << "beta: " << xx[alphaNum+betaSolCount] << endl;
 
 								for (int i=0; i<int(betaSol.size())-1; ++i){
 									double alpha = (betaSol[i+1] - betaSol[i])/this->dt_;
 									alphaSol.push_back(alpha);
-									// cout << "alpha: " << alpha << endl;
 								}
 								this->alphaSol_ = alphaSol;
 								this->betaSol_ = betaSol;
 								this->extractSol(betaSol);
-								free(xx);
-								MSK_deletetask(&task);
-								return true;
+								free(xx);			
+								optimizeSuccess = true;		
 							}
 						}
 						case MSK_SOL_STA_DUAL_INFEAS_CER:
@@ -568,16 +581,18 @@ namespace timeOptimizer{
 			}			
 		}
 		MSK_deletetask(&task);
-		return false;		
+		this->posData_.clear();
+		this->velData_.clear();
+		this->accData_.clear();
+		this->obstacleData_.clear();
+		this->velocityLimits_.clear();
+		this->timeInterval_.clear();
+		return optimizeSuccess;		
 	}
 
 	void timeOptimizer::extractSol(const std::vector<double>& beta){
 		this->trajTime_.clear();
 		this->realTime_.clear();
-
-		// for (double b : beta){
-		// 	cout << b << endl;
-		// }
 
 		double t = 0.0;
 		double tau = 0.0;
@@ -589,10 +604,6 @@ namespace timeOptimizer{
 			this->trajTime_.push_back(t);
 			this->realTime_.push_back(tau);
 		}
-
-		// for (int i=0; i<int(this->trajTime_.size()); ++i){
-		// 	cout << "real time: " << this->realTime_[i] << " traj time: " << this->trajTime_[i] << endl; 
-		// }
 	}
 
 
@@ -625,10 +636,19 @@ namespace timeOptimizer{
 		double t = this->trajTime_[i] + (tau - tStart)/(tEnd - tStart) * (this->trajTime_[i+1] - this->trajTime_[i]);
 		alpha = this->alphaSol_[i];
 		beta = this->betaSol_[i] + (tau - tStart)/(tEnd - tStart) * (this->betaSol_[i+1] - this->betaSol_[i]);
-		// cout << "beta size: " << this->betaSol_.size() << endl;
-		// cout << "alpha size: " << this->alphaSol_.size() << endl;
-		// cout << i << endl;
 		return t;
+	}
+
+	void timeOptimizer::getVelocityLimits(){
+		this->velocityLimits_.clear();
+		if (this->obstacleData_.size() == 0){
+			for (int i=0; i<int(this->posData_.size()); ++i){
+				this->velocityLimits_.push_back(this->vmax_);
+			}
+		}
+		else{
+
+		}
 	}
 
 	double timeOptimizer::getDuration(){

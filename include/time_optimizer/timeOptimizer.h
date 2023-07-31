@@ -28,11 +28,9 @@ namespace timeOptimizer{
 		std::vector<Eigen::Vector3d> posData_;
 		std::vector<Eigen::Vector3d> velData_;
 		std::vector<Eigen::Vector3d> accData_;
+		std::vector<Eigen::Vector4d> obstacleData_;
+		std::vector<double> velocityLimits_;
 		std::vector<std::pair<double, double>> timeInterval_;
-
-		std::vector<std::vector<Eigen::Vector3d>> posDataList_;
-		std::vector<std::vector<Eigen::Vector3d>> velDataList_;
-		std::vector<std::vector<Eigen::Vector3d>> accDataList_;
 
 		std::vector<double> trajTime_;
 		std::vector<double> realTime_;
@@ -46,14 +44,17 @@ namespace timeOptimizer{
 							const std::vector<Eigen::Vector3d>& velData,
 							const std::vector<Eigen::Vector3d>& accData,
 							double dt);
+		void loadObstacles(const std::vector<Eigen::Vector4d>& obstacleData);
 		void loadTimeInterval(const std::vector<std::pair<double, double>>& timeInterval);
 		void divideData(std::vector<std::vector<Eigen::Vector3d>>& posDataList, 
 						std::vector<std::vector<Eigen::Vector3d>>& velDataList,
 						std::vector<std::vector<Eigen::Vector3d>>& accDataList,
-						std::vector<bool>& obstacleInfoList);
+						std::vector<bool>& obstacleInfoList,
+						std::vector<std::vector<double>>& velocityLimitsList);
 		bool optimize();
 		void extractSol(const std::vector<double>& sol);
 		double remapTime(double tau, double& alpha, double& beta);
+		void getVelocityLimits();
 		double getDuration();
 	};
 }
