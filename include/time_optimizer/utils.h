@@ -10,7 +10,7 @@
 
 namespace timeOptimizer{
 	/* compute natural logarithm with a maximum error of 0.85089 ulp */
-	float my_logf (float a)
+	inline float my_logf (float a)
 	{
 	    float i, m, r, s, t;
 	    int e;
@@ -46,7 +46,7 @@ namespace timeOptimizer{
 	}
 	
 	/* compute inverse error functions with maximum error of 2.35793 ulp */
-	float erfinvf (float a)
+	inline float erfinvf (float a)
 	{
 	    float p, r, t;
 	    t = fmaf (a, 0.0f - a, 1.0f);

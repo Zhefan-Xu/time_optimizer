@@ -130,6 +130,7 @@ include_directories(
 add_library(${PROJECT_NAME}
   include/${PROJECT_NAME}/trajectoryDivider.cpp
   include/${PROJECT_NAME}/timeOptimizer.cpp
+  include/${PROJECT_NAME}/bsplineTimeOptimizer.cpp
 )
 
 ## Add cmake target dependencies of the library

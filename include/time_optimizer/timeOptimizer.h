@@ -14,10 +14,10 @@
 #include <time_optimizer/utils.h>
 using std::cout; using std::endl;
 
-static void MSKAPI printstr(void *handle,
-                            const char str[]){
-  	printf("%s", str);
-} 
+// static void MSKAPI printstr(void *handle,
+//                             const char str[]){
+//   	printf("%s", str);
+// } 
 
 namespace timeOptimizer{
 	class timeOptimizer{
