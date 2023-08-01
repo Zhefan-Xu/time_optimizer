@@ -57,7 +57,7 @@ namespace timeOptimizer{
 		void findNearestObstacles(std::vector<Eigen::Vector3d>& nearestObstacles, std::vector<bool>& mask);
 		void divideTrajectory(const std::vector<Eigen::Vector3d>& nearestObstacles, const std::vector<bool>& mask, std::vector<std::pair<double, double>>& tInterval, std::vector<double>& obstacleDist);
 		void getNearestObstacles(std::vector<Eigen::Vector3d>& nearestObstacles, std::vector<bool>& mask);
-
+		void getNearestObstacles(std::vector<Eigen::Vector4d>& nearestObstacles);
 		void publishVisMsg();
 	};
 }

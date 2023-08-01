@@ -287,6 +287,16 @@ namespace timeOptimizer{
 		mask = this->mask_;
 	}
 
+	void trajDivider::getNearestObstacles(std::vector<Eigen::Vector4d>& nearestObstacles){
+		nearestObstacles.clear();
+		for (int i=0; i<int(this->mask_.size()); ++i){
+			double maskVal = this->mask_[i];
+			Eigen::Vector3d nearestObstacle = this->nearestObstacles_[i];
+			Eigen::Vector4d ob (maskVal, nearestObstacle(0), nearestObstacle(1), nearestObstacle(2));
+			nearestObstacles.push_back(ob);
+		}
+	}
+
 	void trajDivider::publishVisMsg(){
 		if (complete_){
 			// raw obstacle trajectory points
