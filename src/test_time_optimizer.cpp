@@ -168,6 +168,7 @@ int main(int argc, char**argv){
 	opt.loadTrajectory(posData, velData, accData, dt);
 	opt.loadTimeInterval(timeInterval);
 	opt.loadObstacles(nearestObstacles);
+	cout << "nearest obstacle size: " << nearestObstacles.size() << endl;
 	bool success = opt.optimize();
 	ros::Time endTime = ros::Time::now();
 	cout << "total time: " << (endTime - startTime).toSec() << endl;
@@ -180,7 +181,7 @@ int main(int argc, char**argv){
 
 	// obtain new trajectory
 	t = 0.0;
-	for (t=0.0; t<opt.getDuration(); t+=dt){
+	for (t=0.0; t<=opt.getDuration(); t+=dt){
 		double alpha, beta;
 		double optimizedTrajT = opt.remapTime(t, alpha, beta);
 		double trajT = optimizedTrajT * linearReparamFactor;
@@ -198,6 +199,5 @@ int main(int argc, char**argv){
 		cout << "Time: " << t << " pos: " << pos.transpose() << " vel: " << vel.transpose() << " acc: " << acc.transpose() << endl;
 
 	}
-
 	return 0;
 }

@@ -549,6 +549,7 @@ namespace timeOptimizer{
 									for (int i=0; i<K+1; ++i){
 										if (i != K){
 											betaSol.push_back(xx[alphaNum+betaSolCount]);
+											cout << betaSol.back() << endl;
 										}
 										betaSolCount += 1;
 									}
@@ -565,9 +566,11 @@ namespace timeOptimizer{
 								free(xx);			
 								optimizeSuccess = true;		
 							}
+							break;
 						}
 						case MSK_SOL_STA_DUAL_INFEAS_CER:
 							cout << "[TimeOptimizer]: Dual infeasible." << endl;
+							break;
 			            case MSK_SOL_STA_PRIM_INFEAS_CER:
 			            	cout << "[TimeOptimizer]: Primal or dual infeasibility certificate found." << endl;
 			              	break;
@@ -675,7 +678,6 @@ namespace timeOptimizer{
 				else{
 					this->velocityLimits_.push_back(this->vmax_);
 				}
-				cout << this->velocityLimits_.back() << endl;
 			}
 		}
 	}
@@ -685,6 +687,7 @@ namespace timeOptimizer{
 		double k = 0.2;
 		double b = 0.1; 
 		var -= pow(this->obstacleStd_, 2);
+		var = std::max(0.0, var);
 		double std = sqrt(var);
 		double vel = (std - b)/ double(k);
 		vel = std::max(this->vob_, std::min(this->vmax_, vel));
