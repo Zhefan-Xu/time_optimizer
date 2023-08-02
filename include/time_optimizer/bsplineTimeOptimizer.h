@@ -25,7 +25,7 @@ namespace timeOptimizer{
 		bsplineTimeOptimizer(const ros::NodeHandle& nh);
 		void setMap(const std::shared_ptr<mapManager::occMap>& map);
 		void optimize(trajPlanner::bspline traj, double vmax, double amax, double dt);
-		void getStates(double t, Eigen::Vector3d& pos, Eigen::Vector3d& vel, Eigen::Vector3d& acc);
+		double getStates(double t, Eigen::Vector3d& pos, Eigen::Vector3d& vel, Eigen::Vector3d& acc);
 		double getLinearReparamFactor(trajPlanner::bspline traj, double vmax, double amax);
 	};
 }

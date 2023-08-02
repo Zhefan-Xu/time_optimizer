@@ -549,7 +549,7 @@ namespace timeOptimizer{
 									for (int i=0; i<K+1; ++i){
 										if (i != K){
 											betaSol.push_back(xx[alphaNum+betaSolCount]);
-											cout << betaSol.back() << endl;
+											// cout << betaSol.back() << endl;
 										}
 										betaSolCount += 1;
 									}

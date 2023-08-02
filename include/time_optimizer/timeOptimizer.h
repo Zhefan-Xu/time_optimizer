@@ -10,7 +10,7 @@
 
 #include <iostream>
 #include <Eigen/Eigen>
-#include <mosek.h>
+#include <time_optimizer/third_party/include/mosek.h>
 #include <time_optimizer/utils.h>
 using std::cout; using std::endl;
 

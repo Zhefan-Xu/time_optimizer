@@ -122,7 +122,6 @@ catkin_package(
 include_directories(
   include
   ${catkin_INCLUDE_DIRS}
-  ${PROJECT_SOURCE_DIR}/third_party/include
 )
 
 
@@ -158,7 +157,7 @@ add_executable(test_time_optimizer src/test_time_optimizer.cpp)
 # target_link_libraries(${PROJECT_NAME}_node
 #   ${catkin_LIBRARIES}
 # )
-target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES} ${PROJECT_SOURCE_DIR}/third_party/lib/libmosek64.so)
+target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES} ${PROJECT_SOURCE_DIR}/include/${PROJECT_NAME}/third_party/lib/libmosek64.so)
 target_link_libraries(test_time_optimizer ${PROJECT_NAME})
 #############
 ## Install ##

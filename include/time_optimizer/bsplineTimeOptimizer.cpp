@@ -28,8 +28,8 @@ namespace timeOptimizer{
 		for (double t=0.0; t * linearReparamFactor <= traj.getDuration(); t+=dt){
 			sampleTime.push_back(t);
 			posData.push_back(traj.at(t * linearReparamFactor));
-			velData.push_back(trajVel.at(t * linearReparamFactor));
-			accData.push_back(trajAcc.at(t * linearReparamFactor));
+			velData.push_back(trajVel.at(t * linearReparamFactor) *  linearReparamFactor);
+			accData.push_back(trajAcc.at(t * linearReparamFactor) * pow(linearReparamFactor, 2));
 		}
 
 		// divide trajectory
@@ -49,20 +49,24 @@ namespace timeOptimizer{
 		this->optimizeSuccess_ = this->timeOpt_->optimize();
 	}
 
-	void bsplineTimeOptimizer::getStates(double t, Eigen::Vector3d& pos, Eigen::Vector3d& vel, Eigen::Vector3d& acc){
+	double bsplineTimeOptimizer::getStates(double t, Eigen::Vector3d& pos, Eigen::Vector3d& vel, Eigen::Vector3d& acc){
 		if (this->optimizeSuccess_){
 			double alpha, beta;
 			double optimizedTime = this->timeOpt_->remapTime(t, alpha, beta);
 			double trajTime = optimizedTime * this->linearReparamFactor_;
 			pos = this->traj_.at(trajTime);
-			vel = this->traj_.getDerivative().at(trajTime);
-			acc = this->traj_.getDerivative().getDerivative().at(trajTime);
+			Eigen::Vector3d velReparam = this->traj_.getDerivative().at(trajTime) * this->linearReparamFactor_;
+			Eigen::Vector3d accReparam = this->traj_.getDerivative().getDerivative().at(trajTime) * pow(this->linearReparamFactor_, 2);
+			vel = velReparam * sqrt(beta);
+			acc = velReparam * alpha + accReparam * beta;
+			return trajTime;
 		}
 		else{
 			double trajTime = t * this->linearReparamFactor_;
 			pos = this->traj_.at(trajTime);
-			vel = this->traj_.getDerivative().at(trajTime);
-			acc = this->traj_.getDerivative().getDerivative().at(trajTime);			
+			vel = this->traj_.getDerivative().at(trajTime) * this->linearReparamFactor_;
+			acc = this->traj_.getDerivative().getDerivative().at(trajTime) * pow(this->linearReparamFactor_, 2);
+			return trajTime;			
 		}
 	}
 
