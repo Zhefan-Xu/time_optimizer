@@ -16,9 +16,11 @@ namespace timeOptimizer{
 		this->trajDivider_->setMap(map);
 	}
 	
-	bool bsplineTimeOptimizer::optimize(trajPlanner::bspline traj, double vmax, double amax, double dt){
+	void bsplineTimeOptimizer::optimize(trajPlanner::bspline traj, double vmax, double amax, double dt){
+		this->traj_ = traj;
 		// obtain position, velocity, acceleration data
 		double linearReparamFactor = this->getLinearReparamFactor(traj, vmax, amax);
+		this->linearReparamFactor_ = linearReparamFactor;
 		trajPlanner::bspline trajVel = traj.getDerivative();
 		trajPlanner::bspline trajAcc = trajVel.getDerivative();
 		std::vector<Eigen::Vector3d> posData, velData, accData;
@@ -44,11 +46,24 @@ namespace timeOptimizer{
 		this->timeOpt_->loadTimeInterval(tInterval);
 		this->timeOpt_->loadObstacles(nearestObstacles);
 
-		bool success = this->timeOpt_->optimize();
+		this->optimizeSuccess_ = this->timeOpt_->optimize();
 	}
 
 	void bsplineTimeOptimizer::getStates(double t, Eigen::Vector3d& pos, Eigen::Vector3d& vel, Eigen::Vector3d& acc){
-
+		if (this->optimizeSuccess_){
+			double alpha, beta;
+			double optimizedTime = this->timeOpt_->remapTime(t, alpha, beta);
+			double trajTime = optimizedTime * this->linearReparamFactor_;
+			pos = this->traj_.at(trajTime);
+			vel = this->traj_.getDerivative().at(trajTime);
+			acc = this->traj_.getDerivative().getDerivative().at(trajTime);
+		}
+		else{
+			double trajTime = t * this->linearReparamFactor_;
+			pos = this->traj_.at(trajTime);
+			vel = this->traj_.getDerivative().at(trajTime);
+			acc = this->traj_.getDerivative().getDerivative().at(trajTime);			
+		}
 	}
 
 	double bsplineTimeOptimizer::getLinearReparamFactor(trajPlanner::bspline traj, double vmax, double amax){
