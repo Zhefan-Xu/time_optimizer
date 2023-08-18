@@ -14,6 +14,7 @@ namespace timeOptimizer{
 		this->vmax_ = vmax;
 		this->amax_ = amax;
 		this->vob_ = std::min(this->vmax_*0.5, 0.5);
+		// this->vob_ = this->vmax_ * 0.5;
 	}
 
 	void timeOptimizer::loadTrajectory(const std::vector<Eigen::Vector3d>& posData, 
