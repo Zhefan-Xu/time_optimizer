@@ -13,8 +13,9 @@ namespace timeOptimizer{
 	void timeOptimizer::setLimits(double vmax, double amax){
 		this->vmax_ = vmax;
 		this->amax_ = amax;
-		this->vob_ = std::min(this->vmax_*0.5, 0.5);
+		// this->vob_ = std::min(this->vmax_*0.5, 0.5);
 		// this->vob_ = this->vmax_ * 0.5;
+		this->vob_ = 0.5;
 	}
 
 	void timeOptimizer::loadTrajectory(const std::vector<Eigen::Vector3d>& posData, 
@@ -685,9 +686,11 @@ namespace timeOptimizer{
 
 	double timeOptimizer::cov2vel(double var){
 		// std = k * v + b
+		// double k = 0.2;
+		// double b = 0.1; 
 		double k = 0.2;
-		double b = 0.1; 
-		var -= pow(this->obstacleStd_, 2);
+		double b = -k * this->vob_; 
+		// var -= pow(this->obstacleStd_, 2);
 		var = std::max(0.0, var);
 		double std = sqrt(var);
 		double vel = (std - b)/ double(k);

@@ -37,7 +37,12 @@ int main(int argc, char**argv){
 	ros::init(argc, argv, "test_time_optimizer_node");
 	ros::NodeHandle nh;
 
-	int dataIdx = 3;
+	int dataIdx = 9;
+	// double vmax = 1.0;
+	// double amax = 3.0;
+	double vmax = 3.0;
+	double amax = 9.0;
+	cout << "data index: " << dataIdx << " max vel: " << vmax << " max acc: " << amax << endl; 
 
 	// read control points
 	std::fstream controlPointFile;
@@ -131,8 +136,7 @@ int main(int argc, char**argv){
 	cout << "[Test]: Time optimizer." << endl; 
 
 	double dt = 0.1;
-	double vmax = 1.0;
-	double amax = 3.0;
+
 	trajPlanner::bspline traj (3, controlPoints, dt);
 	double linearReparamFactor = linearFeasibilityReparam(traj, vmax, amax, dt);
 	cout << "Linear reparam factor is: " << linearReparamFactor << endl;
@@ -197,6 +201,7 @@ int main(int argc, char**argv){
 		// cout << trajT << endl;
 		// cout << "origin vel: " << velReparam.transpose() << " acc: " << accReparam.transpose() << endl; 
 		cout << "Time: " << t << " pos: " << pos.transpose() << " vel: " << vel.transpose() << " acc: " << acc.transpose() << endl;
+		cout << "vel norm: " << vel.norm() << " acc norm: " << acc.norm() << endl;
 
 	}
 	return 0;
