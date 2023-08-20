@@ -22,7 +22,7 @@ namespace timeOptimizer{
 	}
 
 	void trajDivider::registerPub(){
-		this->visPub_ = this->nh_.advertise<visualization_msgs::MarkerArray>("trajDivider/vis_msg", 10);
+		this->visPub_ = this->nh_.advertise<visualization_msgs::MarkerArray>("trajDivider/braking_zone", 10);
 	}
 
 	void trajDivider::registerCallback(){
