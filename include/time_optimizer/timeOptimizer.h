@@ -22,7 +22,7 @@ using std::cout; using std::endl;
 namespace timeOptimizer{
 	class timeOptimizer{
 	private:
-		double alphaCollision_ = 0.05;
+		double alphaCollision_ = 0.01;
 		double obstacleStd_ = 0.1;
 		double lambda_ = 0.5;
 		double vmax_;
@@ -61,6 +61,8 @@ namespace timeOptimizer{
 		void getVelocityLimits();
 		double cov2vel(double var);
 		double getDuration();
+		double getMaxVel();
+		double getMaxAcc();
 	};
 }
 

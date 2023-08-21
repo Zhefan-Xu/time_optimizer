@@ -107,7 +107,7 @@ int main(int argc, char**argv){
 	// read nearest obstacle data
 	std::fstream nearestObstacleFile;
 	std::string nearestObstacleFilename = "../data/nearest_obstacle_data/nearest_obstacles" + std::to_string(dataIdx) + ".txt";
-	nearestObstacleFile.open("../data/nearest_obstacle_data/nearest_obstacles3.txt", std::ios::in);
+	nearestObstacleFile.open(nearestObstacleFilename, std::ios::in);
 
 	std::vector<Eigen::Vector4d> nearestObstacles;
 	if (nearestObstacleFile.is_open()){
@@ -121,6 +121,7 @@ int main(int argc, char**argv){
 				ob(i) = d;
 				++i;
 			}
+			// cout << "ob: " << ob.transpose() << endl;
 			nearestObstacles.push_back(ob);
 		}
 		nearestObstacleFile.close();
@@ -154,6 +155,7 @@ int main(int argc, char**argv){
 		posData.push_back(pos);
 		velData.push_back(vel);
 		accData.push_back(acc);
+		// cout << "original acc: " << acc.norm() << endl;
 		t += dt;
 	}
 
@@ -196,12 +198,13 @@ int main(int argc, char**argv){
 		Eigen::Vector3d vel = velReparam * sqrt(beta);
 		Eigen::Vector3d acc = velReparam * alpha + accReparam * beta;
 
-		// cout << beta << endl;
-		// cout << alpha << endl;
+		// cout << "beta: " << beta << endl;
+		// cout << "alpha: " << alpha << endl;
 		// cout << trajT << endl;
-		// cout << "origin vel: " << velReparam.transpose() << " acc: " << accReparam.transpose() << endl; 
+		// cout << "origin vel: " << velReparam.norm() << " acc: " << accReparam.norm() << endl; 
 		cout << "Time: " << t << " pos: " << pos.transpose() << " vel: " << vel.transpose() << " acc: " << acc.transpose() << endl;
-		cout << "vel norm: " << vel.norm() << " acc norm: " << acc.norm() << endl;
+		// cout << "vel norm: " << vel.norm() << " acc norm: " << acc.norm() << endl;
+
 
 	}
 	return 0;

@@ -59,6 +59,14 @@ namespace timeOptimizer{
 			Eigen::Vector3d accReparam = this->traj_.getDerivative().getDerivative().at(trajTime) * pow(this->linearReparamFactor_, 2);
 			vel = velReparam * sqrt(beta);
 			acc = velReparam * alpha + accReparam * beta;
+			// need further noramlize
+			if (vel.norm() >= this->timeOpt_->getMaxVel()){
+				vel *= this->timeOpt_->getMaxVel()/vel.norm();
+			}
+			if (acc.norm() >= this->timeOpt_->getMaxAcc()){
+				acc *= this->timeOpt_->getMaxAcc()/acc.norm();
+			}
+
 			return trajTime;
 		}
 		else{

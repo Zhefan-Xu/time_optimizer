@@ -210,7 +210,7 @@ namespace timeOptimizer{
 					r = MSK_appendvars(task, varNum); // all variable will be fixed at x = 0
 				}
 
-				// // assign names to each variable
+				// assign names to each variable
 				// {
 				// 	int varNameCount = 0;
 				// 	// alpha
@@ -535,6 +535,7 @@ namespace timeOptimizer{
 					if (r == MSK_RES_OK){
 						r = MSK_getsolsta(task, MSK_SOL_ITR, &solsta);
 					}
+					// MSK_writedata(task,"data.ptf");
 
 					switch (solsta){
 						case MSK_SOL_STA_OPTIMAL:
@@ -551,17 +552,30 @@ namespace timeOptimizer{
 									for (int i=0; i<K+1; ++i){
 										if (i != K){
 											betaSol.push_back(xx[alphaNum+betaSolCount]);
-											// cout << betaSol.back() << endl;
 										}
 										betaSolCount += 1;
 									}
 								}
 								betaSol.push_back(xx[alphaNum+betaSolCount]);
 
+
 								for (int i=0; i<int(betaSol.size())-1; ++i){
 									double alpha = (betaSol[i+1] - betaSol[i])/this->dt_;
 									alphaSol.push_back(alpha);
 								}
+
+								// print beta sol
+								// cout << "beta sol: " << endl;
+								// for (int i=0; i<int(betaSol.size()); ++i){
+								// 	cout << betaSol[i] << endl;
+								// }
+
+								// // print alpha sol
+								// cout << "alpha sol: " << endl;
+								// for (int i=0; i<int(alphaSol.size()); ++i){
+								// 	cout << alphaSol[i] << endl;
+								// }
+
 								this->alphaSol_ = alphaSol;
 								this->betaSol_ = betaSol;
 								this->extractSol(betaSol);
@@ -653,14 +667,14 @@ namespace timeOptimizer{
 			}
 		}
 		else{
-			int countObstaclePoint = 0;
-			for (int i=0; i<int(this->obstacleData_.size()); ++i){
-				if (this->obstacleData_[i](0) == 1.0){
-					++countObstaclePoint;
-				}
-			}
+			// int countObstaclePoint = 0;
+			// for (int i=0; i<int(this->obstacleData_.size()); ++i){
+			// 	if (this->obstacleData_[i](0) == 1.0){
+			// 		++countObstaclePoint;
+			// 	}
+			// }
 
-			double alphaP = this->alphaCollision_/double(countObstaclePoint);
+			// double alphaP = this->alphaCollision_/double(countObstaclePoint);
 			for (int i=0; i<int(this->posData_.size()); ++i){
 				Eigen::Vector4d ob = this->obstacleData_[i];
 				if (ob(0) == 1.0){
@@ -671,7 +685,7 @@ namespace timeOptimizer{
 					Eigen::Vector3d a = diff/diff.norm();
 					Eigen::Vector3d xBar = currPos - currObs;
 					double b = 0.0;
-					double erfTerm = erfinvf(1.0 - 2.0 * alphaP);
+					double erfTerm = erfinvf(1.0 - 2.0 * this->alphaCollision_);
 
 					double var = 0.5 * pow(((a.transpose() * xBar - b)/erfTerm), 2)/(a.transpose() * a);
 					double velLimit = this->cov2vel(var);
@@ -700,5 +714,13 @@ namespace timeOptimizer{
 
 	double timeOptimizer::getDuration(){
 		return this->realTime_.back();
+	}
+
+	double timeOptimizer::getMaxVel(){
+		return this->vmax_;
+	}
+
+	double timeOptimizer::getMaxAcc(){
+		return this->amax_;
 	}
 }
