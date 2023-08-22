@@ -22,7 +22,8 @@ namespace timeOptimizer{
 	}
 
 	void trajDivider::registerPub(){
-		this->visPub_ = this->nh_.advertise<visualization_msgs::MarkerArray>("trajDivider/braking_zone", 10);
+		this->brakingZoneVisPub_ = this->nh_.advertise<visualization_msgs::MarkerArray>("trajDivider/braking_zone", 10);
+		this->kdtreeRangeVisPub_ = this->nh_.advertise<visualization_msgs::MarkerArray>("trajDivider/kdtree_range", 10);
 	}
 
 	void trajDivider::registerCallback(){
@@ -30,7 +31,8 @@ namespace timeOptimizer{
 	}
 
 	void trajDivider::visCB(const ros::TimerEvent&){
-		this->publishVisMsg();
+		this->publishBrakingZoneVisMsg();
+		this->publishKDTreeRangeMsg();
 	}
 
 	void trajDivider::run(std::vector<std::pair<double, double>>& tInterval, std::vector<double>& obstacleDist){
@@ -228,8 +230,10 @@ namespace timeOptimizer{
 		std::vector<std::pair<int, int>> tIntervalIdx;
 		for (size_t i=0; i<tIntervalRaw.size(); ++i){
 			std::pair<double, double> intervalCurr = tIntervalRaw[i];
-			if (intervalCurr.second - intervalCurr.first > this->minTimeIntervalRatio_ * this->time_.back()){ // time is too short
-				if (intervalCurr.first - prevEndTime > this->minIntervalDiffRatio_ * this->time_.back()){
+			double timeThresh = std::min(this->minTimeIntervalRatio_ * this->time_.back(), this->minTime_);
+			if (intervalCurr.second - intervalCurr.first > timeThresh){ // time is too short
+				double diffTimeThresh = std::min(this->minIntervalDiffRatio_ * this->time_.back(), this->minTimeDiff_);
+				if (intervalCurr.first - prevEndTime > diffTimeThresh){
 					tInterval.push_back(intervalCurr);
 					tIntervalIdx.push_back(tIntervalRawIdx[i]);
 				}
@@ -297,8 +301,8 @@ namespace timeOptimizer{
 		}
 	}
 
-	void trajDivider::publishVisMsg(){
-		if (complete_){
+	void trajDivider::publishBrakingZoneVisMsg(){
+		if (this->complete_){
 			// raw obstacle trajectory points
 			visualization_msgs::MarkerArray obTrajMarkers;
 			int countPointNum = 0;
@@ -327,9 +331,9 @@ namespace timeOptimizer{
 					point.pose.position.y = this->trajectory_[i](1);
 					point.pose.position.z = this->trajectory_[i](2);
 					point.lifetime = ros::Duration(0.1);
-					point.scale.x = 0.1;
-					point.scale.y = 0.1;
-					point.scale.z = 0.1;
+					point.scale.x = 0.2;
+					point.scale.y = 0.2;
+					point.scale.z = 0.2;
 					point.color.a = 1.0;
 					point.color.r = 1.0;
 					point.color.g = 0.0;
@@ -339,7 +343,17 @@ namespace timeOptimizer{
 				}
 			}
 
+		
+
+
+			this->brakingZoneVisPub_.publish(obTrajMarkers);
+		}
+	}
+
+	void trajDivider::publishKDTreeRangeMsg(){
+		if (this->complete_){
 			// sample range
+			visualization_msgs::MarkerArray obTrajMarkers;
 			visualization_msgs::Marker range;
 			range.header.frame_id = "map";
 			range.header.stamp = ros::Time::now();
@@ -358,10 +372,9 @@ namespace timeOptimizer{
 			range.color.r = 0.0;
 			range.color.g = 0.0;
 			range.color.b = 1.0;
-			obTrajMarkers.markers.push_back(range);				
+			obTrajMarkers.markers.push_back(range);	
 
-
-			this->visPub_.publish(obTrajMarkers);
+			this->kdtreeRangeVisPub_.publish(obTrajMarkers);	
 		}
 	}
 }
