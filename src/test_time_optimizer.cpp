@@ -37,11 +37,11 @@ int main(int argc, char**argv){
 	ros::init(argc, argv, "test_time_optimizer_node");
 	ros::NodeHandle nh;
 
-	int dataIdx = 9;
-	// double vmax = 1.0;
-	// double amax = 3.0;
-	double vmax = 3.0;
-	double amax = 9.0;
+	int dataIdx = 3;
+	double vmax = 1.0;
+	double amax = 3.0;
+	// double vmax = 3.0;
+	// double amax = 9.0;
 	cout << "data index: " << dataIdx << " max vel: " << vmax << " max acc: " << amax << endl; 
 
 	// read control points
