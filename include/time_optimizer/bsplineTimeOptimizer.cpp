@@ -101,7 +101,12 @@ namespace timeOptimizer{
 	}
 
 	double bsplineTimeOptimizer::getDuration(){
-		return this->timeOpt_->getDuration();
+		if (this->optimizeSuccess_){
+			return this->timeOpt_->getDuration();
+		}
+		else{
+			return this->traj_.getDuration()/this->linearReparamFactor_;
+		}
 	}
 
 }
