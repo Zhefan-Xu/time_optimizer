@@ -100,4 +100,8 @@ namespace timeOptimizer{
 		return std::min(factorVel, factorAcc);		
 	}
 
+	double bsplineTimeOptimizer::getDuration(){
+		return this->timeOpt_->getDuration();
+	}
+
 }

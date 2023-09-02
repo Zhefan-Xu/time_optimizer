@@ -27,6 +27,7 @@ namespace timeOptimizer{
 		void optimize(trajPlanner::bspline traj, double vmax, double amax, double dt);
 		double getStates(double t, Eigen::Vector3d& pos, Eigen::Vector3d& vel, Eigen::Vector3d& acc);
 		double getLinearReparamFactor(trajPlanner::bspline traj, double vmax, double amax);
+		double getDuration();
 	};
 }
 
