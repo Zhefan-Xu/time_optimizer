@@ -16,16 +16,10 @@
   <build_export_depend>roscpp</build_export_depend>
   <build_export_depend>rospy</build_export_depend>
   <build_export_depend>std_msgs</build_export_depend>
-  <build_export_depend>global_planner</build_export_depend>
-  <build_export_depend>trajectory_planner</build_export_depend>
-  <build_export_depend>map_manager</build_export_depend>
   <exec_depend>roscpp</exec_depend>
   <exec_depend>rospy</exec_depend>
   <exec_depend>std_msgs</exec_depend>
-  <exec_depend>global_planner</exec_depend>
-  <exec_depend>trajectory_planner</exec_depend>
-  <exec_depend>map_manager</exec_depend>
-  
+
   <export>
 
   </export>
