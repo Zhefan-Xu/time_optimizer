@@ -141,7 +141,7 @@ add_library(${PROJECT_NAME}
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
 # add_executable(${PROJECT_NAME}_node src/time_optimizer_node.cpp)
-add_executable(test_time_optimizer src/test_time_optimizer.cpp)
+# add_executable(test_time_optimizer src/test_time_optimizer.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -157,8 +157,16 @@ add_executable(test_time_optimizer src/test_time_optimizer.cpp)
 # target_link_libraries(${PROJECT_NAME}_node
 #   ${catkin_LIBRARIES}
 # )
-target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES} ${PROJECT_SOURCE_DIR}/include/${PROJECT_NAME}/third_party/lib/libmosek64.so)
-target_link_libraries(test_time_optimizer ${PROJECT_NAME})
+if(CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64")
+  message("Detected x86_64 architecture.")
+  target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES} ${PROJECT_SOURCE_DIR}/include/${PROJECT_NAME}/third_party/lib/x86/libmosek64.so)
+  # target_link_libraries(test_time_optimizer ${PROJECT_NAME})
+elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "arm")
+  message("Detected ARM architecture.")
+  target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES} ${PROJECT_SOURCE_DIR}/include/${PROJECT_NAME}/third_party/lib/ARM/libmosek64.so)
+else()
+    message("Unknown architecture: ${CMAKE_SYSTEM_PROCESSOR}")
+endif()
 #############
 ## Install ##
 #############
