@@ -1,1 +1,7 @@
-# time_optimizer
+# Optimal Trajectory Time Allocation Library
+
+## I. Installation Guide
+
+## II. 
+
+
