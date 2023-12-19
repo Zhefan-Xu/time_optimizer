@@ -15,7 +15,9 @@ catkin_make
 
 
 ## II. Example DEMO
+The following video shows an example of using the ROTA framework to optimize the time allocation of the given trajectory:
 
+https://github.com/Zhefan-Xu/time_optimizer/assets/55560905/b41ddd1f-5dc3-4fed-b369-dfc40ad1a0ad
 
 The related paper can be found on:
 
