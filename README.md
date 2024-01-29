@@ -25,7 +25,7 @@ https://github.com/Zhefan-Xu/time_optimizer/assets/55560905/b41ddd1f-5dc3-4fed-b
 
 The related paper can be found on:
 
-**Zhefan Xu and Kenji Shimada, “Quadcopter Trajectory Time Minimization and Robust Collision Avoidance via Optimal Time Allocation”, axriv, 2023.** [\[paper\]](https://arxiv.org/abs/2309.08544) [\[video\]](https://youtu.be/wI8KGcxsyMI?si=1QfDPrm8s6Hfv8vf)
+**Zhefan Xu and Kenji Shimada, “Quadcopter Trajectory Time Minimization and Robust Collision Avoidance via Optimal Time Allocation”, IEEE International Conference on Robotics and Automation (ICRA), 2024.** [\[paper\]](https://arxiv.org/abs/2309.08544) [\[video\]](https://youtu.be/wI8KGcxsyMI?si=1QfDPrm8s6Hfv8vf)
 
 
 ## III. Citation and Reference
