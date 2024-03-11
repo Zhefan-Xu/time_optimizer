@@ -11,7 +11,7 @@ This repo can be used as a standalone package and also comes as a module of our 
 This repo has been tested on ROS Melodic with Ubuntu 18.04 and ROS Noetic with Ubuntu 20.04 and it depends on [global_planner](https://github.com/Zhefan-Xu/tracking_controller/edit/main/README.md), [trajectory_planner](trajectory_planner), and [map_manager](https://github.com/Zhefan-Xu/trajectory_planner). Please use the following commands for installation:
 ```
 cd ~/catkin_ws/src
-git clone https://github.com/Zhefan-Xu/map_manager.git
+git clone https://github.com/Zhefan-Xu/time_optimizer.git
 
 cd ~/catkin_ws
 catkin_make
